@@ -58,36 +58,53 @@ statistics.get_teams('england', 'premier-league', 2013)
 
 ### Scraping
 
-```python
-Scraping(path)
-
-collect(driver, country, championship, last_year, first_year)
-```
+- instantiate object *Scraping*
+    ```python
+    Scraping(path)
+    ```
+- start collect flashscore data
+    ```python
+    scraping.collect(driver, country, championship, last_year, first_year)
+    ```
 
 ### Statistics
 
-```python
-Statistics(path)
+- instantiate object *Statistics*
+    ```python
+    Statistics(path)
+    ```
 
-get_teams(country, championship, last_year, first_year)
+- get all the names of the teams that participated in a championship
+    > statistics.get_teams(country, championship, last_year, first_year)
+   
+- get all matches where the specified team win in a championship
+    ```python
+    statistics.get_win_matches(country, championship, team, last_year, first_year)
+    ```
 
-get_win_matches(country, championship, team, last_year, first_year)
+- get all matches where the specified team lose in a championship
+    ```python
+    statistics.get_lose_matches(country, championship, team, last_year, first_year)
+    ```
 
-get_lose_matches(country, championship, team, last_year, first_year)
+- get all matches where the specified team draw in a championship
+    ```python
+    statistics.get_draw_matches(country, championship, team, last_year, first_year)
+    ```
 
-get_draw_matches(country, championship, team, last_year, first_year)
-
-get_statistic_by_team(country, championship, team, statistic, last_year, first_year)
-```
+- get specified statistic from one team in a championship
+    ```python
+    statistics.get_statistic_by_team(country, championship, team, statistic, last_year, first_year)
+    ```
 
 ### Parameters
 
-- path: by default, the path is initialized with './data', but the path can be changed to your preferred path.
-- driver: Selenium driver that must be initialized before as done [here](https://selenium-python.readthedocs.io/getting-started.html)
-- country: country name where the championship is held
-- championship: championship name
-- team: team name
-- statistic: one this statistics
+- **path**: by default, the path is initialized with './data', but the path can be changed to your preferred path.
+- **driver**: Selenium driver that must be initialized before as done [here](https://selenium-python.readthedocs.io/getting-started.html)
+- **country**: country name where the championship is held
+- **championship**: championship name
+- **team**: team name
+- **statistic**: one this statistics
     ```python
         ============================== STATISTICS ===============================
         "ball_possession",  "goal_attempts", "shots_on_goal", "shots_off_goal", 
@@ -96,5 +113,5 @@ get_statistic_by_team(country, championship, team, statistic, last_year, first_y
         "completed_passes", "tackles",       "attacks",       "dangerous_attacks" 
         =========================================================================
     ```
-- last_year: championship year
-- first_year: required only if you need matches within a given time interval
+- **last_year**: championship year
+- **first_year**: required only if you need matches within a given time interval
