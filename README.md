@@ -1,5 +1,7 @@
 # Web scrape to [flashcore](flashscore.com)
 
+![EXAMPLE IMAGE](https://raw.githubusercontent.com/gustavofariaa/flashscore_scraping/master/flashscore_scraping_image.png)
+
 ## Used technologies
 
 - [Selenium](https://selenium-python.readthedocs.io/)
@@ -10,7 +12,7 @@
 ### Scraping
 
 ```python
-from flashscore_scraping import Scraping
+from flashscore import Scraping
 from selenium import webdriver
 
 # Scraping startup
@@ -31,7 +33,7 @@ driver.quit()
 ### Statistics
 
 ```python
-from flashscore_scraping import Statistics
+from flashscore import Statistics
 
 # Statistics startup
 statistics = Statistics()
