@@ -56,26 +56,6 @@ statistics.get_teams('england', 'premier-league', 2013)
 
 ## Documentation
 
-### Parameters
-
-- path: by default, the path is initialized with './data', but the path can be changed to your preferred path.
-- driver: Selenium driver that must be initialized before as done [here](https://selenium-python.readthedocs.io/getting-started.html)
-- country: country name where the championship is held
-- championship: championship name
-- team: team name
-- statistic: one this statistics
-    ```python
-        ============================== STATISTICS ===============================
-        "ball_possession",  "goal_attempts", "shots_on_goal", "shots_off_goal", 
-        "blocked_shots",    "free_kicks",    "corner_kicks",  "offsides", 
-        "total_passes",     "fouls",         "yellow_cards",  "goalkeeper_saves", 
-        "completed_passes", "tackles",       "attacks",       "dangerous_attacks" 
-        =========================================================================
-    ```
-- last_year: championship year
-- first_year: required only if you need matches within a given time interval
-
-
 ### Scraping
 
 ```python
@@ -99,3 +79,22 @@ get_draw_matches(country, championship, team, last_year, first_year)
 
 get_statistic_by_team(country, championship, team, statistic, last_year, first_year)
 ```
+
+### Parameters
+
+- path: by default, the path is initialized with './data', but the path can be changed to your preferred path.
+- driver: Selenium driver that must be initialized before as done [here](https://selenium-python.readthedocs.io/getting-started.html)
+- country: country name where the championship is held
+- championship: championship name
+- team: team name
+- statistic: one this statistics
+    ```python
+        ============================== STATISTICS ===============================
+        "ball_possession",  "goal_attempts", "shots_on_goal", "shots_off_goal", 
+        "blocked_shots",    "free_kicks",    "corner_kicks",  "offsides", 
+        "total_passes",     "fouls",         "yellow_cards",  "goalkeeper_saves", 
+        "completed_passes", "tackles",       "attacks",       "dangerous_attacks" 
+        =========================================================================
+    ```
+- last_year: championship year
+- first_year: required only if you need matches within a given time interval
