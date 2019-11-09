@@ -10,7 +10,7 @@
 ### Scraping
 
 ```python
-from flashscore import Scraping
+from flashscore_scraping import Scraping
 from selenium import webdriver
 
 # Scraping startup
@@ -31,7 +31,7 @@ driver.quit()
 ### Statistics
 
 ```python
-from flashscore import Statistics
+from flashscore_scraping import Statistics
 
 # Statistics startup
 statistics = Statistics()
