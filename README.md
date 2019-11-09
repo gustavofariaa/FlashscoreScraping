@@ -38,13 +38,16 @@ statistics = Statistics()
 
 # get all matches where the Atletico MG win in 2018
 statistics.get_win_matches('brazil', 'serie-a', 'Atletico-MG', 2018)
+
 # get all matches where the Atletico MG lost between 2014 and 2016
 statistics.get_lose_matches('brazil', 'serie-a', 'Atletico-MG', 2016, 2014)
+
 # get all matches where the Atletico MG draw in 2015
 statistics.get_draw_matches('brazil', 'serie-a', 'Atletico-MG', 2015)
 
 # get all possession ball of Bayern Munich in 2019
 statistics.get_statistic_by_team('germany', 'bundesliga', 'Bayern Munich', statistic, 2017)
+
 # get all the names of teams that participated in the Premier League in 2019
 statistics.get_teams('england', 'premier-league', 2013)
 ```
@@ -53,7 +56,7 @@ statistics.get_teams('england', 'premier-league', 2013)
 
 > path: by default, the path is initialized with './data', but the path can be changed to your preferred path.
 
-> drive: Selenium driver that must be initialized before as done [here](https://selenium-python.readthedocs.io/getting-started.html)
+> driver: Selenium driver that must be initialized before as done [here](https://selenium-python.readthedocs.io/getting-started.html)
 
 > country: country name where the championship is held
 
