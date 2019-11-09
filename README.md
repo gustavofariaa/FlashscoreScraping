@@ -21,6 +21,7 @@ driver = webdriver.Chrome('chromedriver')
 
 # get all matches of Brazilian Championship Serie A 2019
 scraping.collect(driver, 'brazil', 'serie-a', 2019)
+
 # get all LaLiga matches from 2012 until 2019
 scraping.collect(driver, 'spain', 'laliga', 2018, 2012)
 
