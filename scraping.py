@@ -67,7 +67,7 @@ class Scraping:
         return matches_id
     
 
-    def __create_match_data(self, date, teams, result, images, statistics_title, statistics_home, statistics_away):
+    def __create_match_data(self, date, teams, result, images, statistics_title=[], statistics_home='', statistics_away=''):
         data = {}
         data['date'] = date
         data['teams'] = {}
@@ -212,7 +212,6 @@ class Scraping:
             db = self.__open_db(country, championship, year)
 
             count = 1
-            matches_id = matches_id[375:]
             for match_id in matches_id:
                 percentage = '\033[96m' + str(round((count/len(matches_id))*100, 2)) + '% \033[0m'
                 print('  \033[K', percentage, end='\r')
