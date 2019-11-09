@@ -75,8 +75,10 @@ statistics.get_teams('england', 'premier-league', 2013)
     ```
 
 - get all the names of the teams that participated in a championship
-    > statistics.get_teams(country, championship, last_year, first_year)
-   
+    ```python
+    statistics.get_teams(country, championship, last_year, first_year)
+    ```
+    
 - get all matches where the specified team win in a championship
     ```python
     statistics.get_win_matches(country, championship, team, last_year, first_year)
