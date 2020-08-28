@@ -1,18 +1,54 @@
-# Web scrape to [flashcore](flashscore.com)
+<h1 align="center">
+  <img src=".github/Logo.svg" alt="logo" width=150px>
+</h1>
 
-![EXAMPLE IMAGE](https://raw.githubusercontent.com/gustavofariaa/flashscore_scraping/master/flashscore_scraping_image.png)
+<p align="center">
+  <a href="#-technologies">Technologies</a>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+  <a href="#-scraping">Scraping</a>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+  <a href="#-statistics">Statistics</a>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+  <a href="#-documentation">Documentation</a>
+</p>
 
-## Used technologies
+<br>
+
+<p align="center">
+  <img src=".github/screen.png" alt="screen" width="80%">
+</p>
+
+## 🛠️ Technologies
 
 - [Selenium](https://selenium-python.readthedocs.io/)
 - [TinyDB](https://tinydb.readthedocs.io/en/latest/)
 
-## How to use 
+## ▶️ How to use 
 
-### Scraping
+To run my example you have to download [chromedriver](https://chromedriver.chromium.org/) compatible with your [chrome version](https://www.whatismybrowser.com/).
 
+You can use others driver following the [Selenium docs](https://selenium-python.readthedocs.io/).
+
+For the example, we use FlashscoreScraping as a lib.
+
+To start, we created a directory named *flashscore-scraping-example*.
+```bash
+mkdir flashscore-scraping-example
+cd ./flashscore-scraping-example
+```
+Within this directory, we have to clone this repository.
+```bash
+git clone https://github.com/gustavofariaa/FlashscoreScraping.git
+```
+After clone this repository, we have to install the dependencies.
+```bash
+cd ./FlashscoreScraping
+pip install -r requirements.txt
+cd ..
+```
+
+## 🤖 Scraping
+
+To Scraping data we have to create a main.py at the root of the directory.
 ```python
-from flashscore import Scraping
+from FlashscoreScraping import Scraping
 from selenium import webdriver
 
 # Scraping startup
@@ -30,10 +66,19 @@ scraping.collect(driver, 'spain', 'laliga', 2018, 2012)
 driver.quit()
 ```
 
-### Statistics
+> It is important that you have to download [chromedriver](https://chromedriver.chromium.org/) compatible with your [chrome version](https://www.whatismybrowser.com/) and that it is in the root directory.
+
+Finally we run the FlashscoreScraping run the command.
+```bash
+python main.py
+```
+
+## ⚽ Statistics
+
+To get specific statistics of a team, you can import Statistics as a lib in main.py, just like we did before with Scraping.
 
 ```python
-from flashscore import Statistics
+from FlashscoreScraping import Statistics
 
 # Statistics startup
 statistics = Statistics()
@@ -54,7 +99,33 @@ statistics.get_statistic_by_team('germany', 'bundesliga', 'Bayern Munich', stati
 statistics.get_teams('england', 'premier-league', 2013)
 ```
 
-## Documentation
+## 📚 Documentation
+
+### Parameters
+
+- **path**: by default, the path is initialized with './data', but the path can be changed to your preferred path.
+
+- **driver**: Selenium driver
+
+- **country**: country name where the championship is held
+
+- **championship**: championship name
+
+- **team**: team name
+
+- **statistic**: one this statistics
+    ```python
+        ============================== STATISTICS ===============================
+        "ball_possession",  "goal_attempts", "shots_on_goal", "shots_off_goal", 
+        "blocked_shots",    "free_kicks",    "corner_kicks",  "offsides", 
+        "total_passes",     "fouls",         "yellow_cards",  "goalkeeper_saves", 
+        "completed_passes", "tackles",       "attacks",       "dangerous_attacks" 
+        =========================================================================
+    ```
+    
+- **last_year**: championship year
+
+- **first_year**: required only if you need matches within a given time interval
 
 ### Scraping
 
@@ -99,28 +170,17 @@ statistics.get_teams('england', 'premier-league', 2013)
     statistics.get_statistic_by_team(country, championship, team, statistic, last_year, first_year)
     ```
 
-### Parameters
+<br>
 
-- **path**: by default, the path is initialized with './data', but the path can be changed to your preferred path.
+---
 
-- **driver**: Selenium driver that must be initialized before as done [here](https://selenium-python.readthedocs.io/getting-started.html)
+<br>
 
-- **country**: country name where the championship is held
-
-- **championship**: championship name
-
-- **team**: team name
-
-- **statistic**: one this statistics
-    ```python
-        ============================== STATISTICS ===============================
-        "ball_possession",  "goal_attempts", "shots_on_goal", "shots_off_goal", 
-        "blocked_shots",    "free_kicks",    "corner_kicks",  "offsides", 
-        "total_passes",     "fouls",         "yellow_cards",  "goalkeeper_saves", 
-        "completed_passes", "tackles",       "attacks",       "dangerous_attacks" 
-        =========================================================================
-    ```
-    
-- **last_year**: championship year
-
-- **first_year**: required only if you need matches within a given time interval
+<p align="center">
+  <a href="https://twitter.com/gufariaa" target="_blank">
+    <img alt="Twitter" src="https://img.shields.io/badge/@gufariaa-1C7404?style=for-the-badge&logo=twitter&logoColor=FFFFFF">
+  </a>
+    <a href="https://www.linkedin.com/in/gustavofariaa/" target="_blank">
+    <img alt="Linkedin" src="https://img.shields.io/badge/Gustavo%20Faria-1C7404?style=for-the-badge&logo=linkedin&logoColor=FFFFFF">
+  </a>
+</p> 
