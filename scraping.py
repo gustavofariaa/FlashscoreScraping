@@ -190,7 +190,7 @@ class Scraping:
             percentage = '\033[96m' + str(round((count/len(all_teams_image))*100, 2)) + '% \033[0m'
             print('  \033[K', percentage, end='\r')
             try:
-                urllib.request.urlretrieve(team['url_image'], path + team['name'] + ".jpg")
+                urllib.request.urlretrieve(team['url_image'], path + team['name'] + ".png")
                 print('💾\033[93m ' + team['name'].upper() + ' IMAGE HAS BEEN DOWNLOADED\033[0m')
             except:
                 print('❌\033[91m  ERROR: ' + team['name'].upper() + ' IMAGE WASN\'T BEEN DOWNLOADED\033[0m')
