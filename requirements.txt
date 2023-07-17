@@ -1,4 +1,4 @@
-﻿astroid==2.3.2
+astroid==2.3.2
 colorama==0.4.1
 isort==4.3.21
 lazy-object-proxy==1.4.3
