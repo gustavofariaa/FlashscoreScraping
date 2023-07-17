@@ -1,14 +1,14 @@
-﻿astroid==2.3.2
+astroid==2.3.2
 colorama==0.4.1
 isort==4.3.21
 lazy-object-proxy==1.4.3
 mccabe==0.6.1
-numpy==1.17.3
+numpy==1.22.0
 pylint==2.4.3
 python-dateutil==2.8.1
 pytz==2019.3
 selenium==3.141.0
 six==1.12.0
 tinydb==3.15.1
-urllib3==1.26.5
+urllib3==1.25.6
 wrapt==1.11.2
