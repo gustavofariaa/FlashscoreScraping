@@ -92,7 +92,7 @@ This project works for users looking for reliable information about sports resul
 | `result`     | `object:Result`   | Result of the match.               |
 | `statistics` | `array<Statistic>`| Array of statistics for the match. |
 
-## Team
+### Team
 
 ```json
 {
@@ -106,7 +106,7 @@ This project works for users looking for reliable information about sports resul
 | `name`    | `string` | Name of the team.        |
 | `image`   | `string` | URL of the team's logo.  |
 
-## Result
+### Result
 
 ```json
 {
@@ -124,7 +124,7 @@ This project works for users looking for reliable information about sports resul
 | `penalty` | `string?` | Number of penalties awarded in the match. |
 | `status`  | `string`  | Status of the match                       |
 
-## Statistics
+### Statistics
 
 ```json
 {
