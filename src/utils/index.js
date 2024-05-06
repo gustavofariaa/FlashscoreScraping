@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 
-import { BASE_URL } from "../constants/index.js";
+import {BASE_URL} from "../constants/index.js";
 
 export const getMatchIdList = async (browser, country, league) => {
   const page = await browser.newPage();
@@ -39,7 +39,7 @@ export const getMatchData = async (browser, matchId) => {
 
   await new Promise(resolve => setTimeout(resolve, 1500));
 
-  const data = await page.evaluate(async _ => ({
+  const data = await page.evaluate(async () => ({
     date: document.querySelector(".duelParticipant__startTime")?.outerText,
     home: {
       name: document.querySelector(".duelParticipant__home .participant__participantName.participant__overflow")?.outerText,
@@ -55,11 +55,11 @@ export const getMatchData = async (browser, matchId) => {
       penalty: document.querySelector(".detailScore__fullTime")?.textContent,
       status: document.querySelector(".fixedHeaderDuel__detailStatus")?.outerText
     },
-    statistics: Array.from(document.querySelectorAll(".section > .stat__row > .stat__category"))
+    statistics: Array.from(document.querySelectorAll("div[data-testid='wcl-statistics']"))
       .map(element => ({
-        categoryName: element.querySelector(".stat__categoryName")?.outerText,
-        homeValue: element.querySelector(".stat__homeValue")?.outerText,
-        awayValue: element.querySelector(".stat__awayValue")?.outerText,
+        categoryName: element.querySelector("div[data-testid='wcl-statistics-category']")?.innerText,
+        homeValue: Array.from(element.querySelectorAll("div[data-testid='wcl-statistics-value'] > strong"))?.[0]?.innerText,
+        awayValue: Array.from(element.querySelectorAll("div[data-testid='wcl-statistics-value'] > strong"))?.[1]?.innerText
       }))
   }));
 
@@ -71,7 +71,7 @@ export const writeMatchData = (data, pathW, name) => {
   const jsonData = JSON.stringify(data, null, 2);
   const filePath = path.join(pathW, `${name}.json`);
 
-  fs.mkdir(path.dirname(filePath), { recursive: true }, (err) => {
+  fs.mkdir(path.dirname(filePath), {recursive: true}, (err) => {
     if (err) {
       console.error("Error creating directories:", err);
     } else {
