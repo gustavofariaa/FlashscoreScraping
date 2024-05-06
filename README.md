@@ -2,56 +2,65 @@
   <img src=".github/Logo.svg" alt="logo" width=150px>
 </h1>
 
-Flashscore is a popular website that provides live scores, statistics, and news for a variety of sports. However, the website does not provide an API for developers to access this data. This is where FlashscoreScraping comes in.
+Flashscore is a popular website providing live scores, statistics, and news across various sports. However, it lacks an
+official API for developers to access its data. This is where FlashscoreScraping comes in.
 
-This project works for users looking for reliable information about sports results. Sports enthusiasts can rely on the scraper's data to track their favorite teams, analyze past results, and predict future outcomes. Additionally, researchers, students, and educators can use the data for academic purposes.
-
+This project caters to users seeking reliable sports results data. Sports enthusiasts can leverage the scraper's data to
+track their favorite teams, analyze past results, and predict future outcomes. Moreover, researchers, students, and
+educators can utilize the data for academic purposes.
 
 ## Getting Started
 
-1. Clone the project
+1. Clone the project:
 
     ```bash
-      git clone https://github.com/gustavofariaa/FlashscoreScraping.git
+    git clone https://github.com/gustavofariaa/FlashscoreScraping.git
     ```
 
-1. Go to the project directory
+1. Navigate to the project directory:
 
     ```bash
-      cd FlashscoreScraping
+    cd FlashscoreScraping
     ```
 
-1. Install dependencies
+1. Install dependencies:
 
     ```bash
-      npm install
+    npm install
     ```
 
-1. Start the crawler
+1. Start the crawler:
 
-    To use the crawler, you must specify a country and a league. You can also specify whether you want to run the crawler in headless mode and the path to the output file.
+   To utilize the crawler, you need to specify a country and a league. Additionally, you can indicate whether to run the
+   crawler in headless mode and specify the output file path.
+
+   | Parameter  | Required | Default Value | Description                                                |
+   |:-----------|:--------:|:-------------:|:-----------------------------------------------------------|
+   | `country`  |    ✅     |       -       | The country for which results are to be crawled.           |
+   | `league`   |    ✅     |       -       | The league for which results are to be crawled.            |
+   | `headless` |          |    `false`    | When specified, the crawler runs without a user interface. |
+   | `path`     |          | `./src/data`  | The path to save the JSON file with crawler results.       |
+
+    - **Examples:**
 
     ```bash
-      npm run start country=brazil league=serie-a-2023 headless
+    npm run start country=brazil league=serie-a-2023 headless
     ```
 
-    > This command runs the crawler in Brazilian Serie A 2023, in headless mode and saves the results to standard output.
+   > This command runs the crawler for the Brazilian Serie A 2023, in headless mode, and saves the results to standard
+   output.
 
     ```bash
-      npm run start country=england league=premier-league-2022-2023 path=./src/data
+    npm run start country=england league=premier-league-2022-2023 path=./src/data
     ```
 
-    > This command runs the crawler in England Premier League 2022 - 2023, in graphical mode and saves the result to a path `./src/data`.
-
-    | Parameter  |Required | Default value | Description                        |
-    | :-         | :-:     | :-            |:-                |
-    | `country`  | ✅     | -            | Country for which you want to crawl results. |
-    | `league`   | ✅     | -             | League for which you want to crawl results. |
-    | `headless` | -      | `false`        | When this argument is specified, the crawler runs without a user interface. |
-    | `path`     | -      | `.src/data`    | The path to save the JSON file with crawler results. |
-
+   > This command runs the crawler for the English Premier League 2022-2023, in graphical mode, and saves the result to
+   the specified path `./src/data`.
 
 ## Data Example
+
+The data returned by the crawler is in JSON format and includes information such as match date, team names, scores, and
+statistics.
 
 ```json
 {
@@ -84,13 +93,13 @@ This project works for users looking for reliable information about sports resul
 }
 ```
 
-| Parameter    | Type              | Description                        |
-| :-           | :-                | :-                                 |
-| `date`       | `string`          | Date and time of the match.        |
-| `home`       | `object:Team`     | Home team.                         |
-| `away`       | `object:Team`     | Away team.                         |
-| `result`     | `object:Result`   | Result of the match.               |
-| `statistics` | `array<Statistic>`| Array of statistics for the match. |
+| Parameter    | Type               | Description                      |
+|:-------------|:-------------------|:---------------------------------|
+| `date`       | `string`           | The date and time of the match.  |
+| `home`       | `object:Team`      | Information about the home team. |
+| `away`       | `object:Team`      | Information about the away team. |
+| `result`     | `object:Result`    | Result of the match.             |
+| `statistics` | `array<Statistic>` | An array of match statistics.    |
 
 ### Team
 
@@ -101,10 +110,10 @@ This project works for users looking for reliable information about sports resul
 }
 ```
 
-| Parameter | Type     | Description              |
-| :-        | :-       | :-                       |
-| `name`    | `string` | Name of the team.        |
-| `image`   | `string` | URL of the team's logo.  |
+| Parameter | Type     | Description                 |
+|:----------|:---------|:----------------------------|
+| `name`    | `string` | The name of the team.       |
+| `image`   | `string` | The URL of the team's logo. |
 
 ### Result
 
@@ -117,12 +126,12 @@ This project works for users looking for reliable information about sports resul
 }
 ```
 
-| Parameter | Type      | Description                               |
-| :-        | :-        | :-                                        |
-| `home`    | `string`  | Score of the home team.                   |
-| `away`    | `string`  | Score of the away team.                   |
-| `penalty` | `string?` | Number of penalties awarded in the match. |
-| `status`  | `string`  | Status of the match                       |
+| Parameter | Type      | Description                                                   |
+|:----------|:----------|:--------------------------------------------------------------|
+| `home`    | `string`  | The score of the home team.                                   |
+| `away`    | `string`  | The score of the away team.                                   |
+| `penalty` | `string?` | The number of penalties awarded in the match (if applicable). |
+| `status`  | `string`  | The status of the match.                                      |
 
 ### Statistics
 
@@ -135,7 +144,11 @@ This project works for users looking for reliable information about sports resul
 ```
 
 | Parameter      | Type     | Description                                   |
-| :-             | :-       | :-                                            |
-| `categoryName` | `string` | Name of the statistical category.             |
-| `homeValue`    | `string` | Value of the statistic for the home team.     |
-| `awayValue`    | `string` | Value of the statistic for the away team.     |
+|:---------------|:---------|:----------------------------------------------|
+| `categoryName` | `string` | The name of the statistical category.         |
+| `homeValue`    | `string` | The value of the statistic for the home team. |
+| `awayValue`    | `string` | The value of the statistic for the away team. |
+
+---
+
+If you encounter any issues or have suggestions for improvements, feel free to [open an issue](https://github.com/gustavofariaa/FlashscoreScraping/issues).

@@ -1,7 +1,7 @@
 import puppeteer from "puppeteer";
 import cliProgress from 'cli-progress';
 
-import { getMatchIdList, getMatchData, writeMatchData } from "./utils/index.js";
+import {getMatchData, getMatchIdList, writeMatchData} from "./utils/index.js";
 
 (async () => {
   let country = null
@@ -21,12 +21,12 @@ import { getMatchIdList, getMatchData, writeMatchData } from "./utils/index.js";
   })
 
   if (!country || !league) {
-    console.log("ERROR: You did not define a country or league flags.");
-    console.log("Documentation can be found at https://github.com/gustavofariaa/FlashscoreScraping");
+    console.error("ERROR: You must set country and league parameters.");
+    console.error("For usage instructions, please refer to the documentation at https://github.com/gustavofariaa/FlashscoreScraping");
     return;
   }
 
-  const browser = await puppeteer.launch({ headless });
+  const browser = await puppeteer.launch({headless});
 
   const matchIdList = await getMatchIdList(browser, country, league)
 
@@ -40,8 +40,7 @@ import { getMatchIdList, getMatchData, writeMatchData } from "./utils/index.js";
 
   const data = {}
   for (const matchId of matchIdList) {
-    const matchData = await getMatchData(browser, matchId);
-    data[matchId] = matchData
+    data[matchId] = await getMatchData(browser, matchId)
     writeMatchData(data, path, `${country}-${league}`)
     progressBar.increment();
   }
