@@ -1,24 +1,29 @@
 import puppeteer from "puppeteer";
 import cliProgress from 'cli-progress';
 
-import {getMatchData, getMatchIdList, writeMatchData} from "./utils/index.js";
+import {getMatchData, getMatchIdList} from "./utils/scraping/index.js";
+import {writeDataToFile} from "./utils/fileHandler/index.js";
+import {convertDataToCsv} from "./utils/csvHandler/index.js";
 
 (async () => {
-  let country = null
-  let league = null
-  let headless = false
-  let path = "./src/data"
+  const commandLineArgs = process.argv.slice(2);
+  const options = {
+    country: null,
+    league: null,
+    headless: false,
+    outputPath: "./src/data",
+    fileType: "json"
+  };
 
-  process.argv?.slice(2)?.map(arg => {
-    if (arg.includes("country="))
-      country = arg.split("country=")?.[1] ?? country;
-    if (arg.includes("league="))
-      league = arg.split("league=")?.[1] ?? league;
-    if (arg.includes("headless"))
-      headless = "new";
-    if (arg.includes("path="))
-      path = arg.split("path=")?.[1] ?? path;
-  })
+  commandLineArgs.forEach(arg => {
+    if (arg.startsWith("country=")) options.country = arg.split("=")[1];
+    if (arg.startsWith("league=")) options.league = arg.split("=")[1];
+    if (arg === "headless") options.headless = "new";
+    if (arg.startsWith("path=")) options.outputPath = arg.split("=")[1];
+    if (arg.startsWith("type=")) options.fileType = arg.split("=")[1];
+  });
+
+  const {country, league, headless, fileType, outputPath} = options;
 
   if (!country || !league) {
     console.error("ERROR: You must set country and league parameters.");
@@ -28,7 +33,7 @@ import {getMatchData, getMatchIdList, writeMatchData} from "./utils/index.js";
 
   const browser = await puppeteer.launch({headless});
 
-  const matchIdList = await getMatchIdList(browser, country, league)
+  const matchIdList = await getMatchIdList(browser, country, league);
 
   const progressBar = new cliProgress.SingleBar({
     format: 'Progress {bar} {percentage}% | {value}/{total}',
@@ -38,10 +43,25 @@ import {getMatchData, getMatchIdList, writeMatchData} from "./utils/index.js";
   });
   progressBar.start(matchIdList.length, 0);
 
-  const data = {}
+  const matchData = {};
   for (const matchId of matchIdList) {
-    data[matchId] = await getMatchData(browser, matchId)
-    writeMatchData(data, path, `${country}-${league}`)
+    matchData[matchId] = await getMatchData(browser, "2Ba0ep6H");
+
+    switch (fileType) {
+      case "json":
+        writeDataToFile(matchData, outputPath, `${country}-${league}`, fileType);
+        break;
+
+      case "csv":
+        const csvData = convertDataToCsv(matchData);
+        writeDataToFile(csvData, outputPath, `${country}-${league}`, fileType);
+        break;
+
+      default:
+        console.error("ERROR: Invalid file type.");
+        console.error("For usage instructions, please refer to the documentation at https://github.com/gustavofariaa/FlashscoreScraping");
+    }
+
     progressBar.increment();
   }
 

@@ -29,17 +29,19 @@ educators can utilize the data for academic purposes.
     npm install
     ```
 
-1. Start the crawler:
+1. Start the scraping:
 
-   To utilize the crawler, you need to specify a country and a league. Additionally, you can indicate whether to run the
-   crawler in headless mode and specify the output file path.
+   To utilize the scraping, you need to specify a country and a league. Additionally, you can indicate whether to run
+   the
+   scraping in headless mode and specify the output file path.
 
-   | Parameter  | Required | Default Value | Description                                                |
-   |:-----------|:--------:|:-------------:|:-----------------------------------------------------------|
-   | `country`  |    ✅     |       -       | The country for which results are to be crawled.           |
-   | `league`   |    ✅     |       -       | The league for which results are to be crawled.            |
-   | `headless` |          |    `false`    | When specified, the crawler runs without a user interface. |
-   | `path`     |          | `./src/data`  | The path to save the JSON file with crawler results.       |
+   | Parameter  | Required | Default Value | Description                                                      |
+               |:-----------|:--------:|:-------------:|:-----------------------------------------------------------------|
+   | `country`  |    ✅     |       -       | The country for which results are to be crawled.                 |
+   | `league`   |    ✅     |       -       | The league for which results are to be crawled.                  |
+   | `headless` |          |    `false`    | When specified, the scraping runs without a user interface.      |
+   | `path`     |          | `./src/data`  | The path to save the output file.                                |
+   | `type`     |          |    `json`     | The format of the output file (`json` or `csv`).                 |
 
     - **Examples:**
 
@@ -47,20 +49,21 @@ educators can utilize the data for academic purposes.
     npm run start country=brazil league=serie-a-2023 headless
     ```
 
-   > This command runs the crawler for the Brazilian Serie A 2023, in headless mode, and saves the results to standard
-   output.
+   > This command runs the s for the `Brazilian` `Serie A 2023` in `headless mode` and saves the results in `JSON`
+   format to `standard output`.
 
     ```bash
-    npm run start country=england league=premier-league-2022-2023 path=./src/data
+    npm run start country=england league=premier-league-2022-2023 path=./src/data type=csv
     ```
 
-   > This command runs the crawler for the English Premier League 2022-2023, in graphical mode, and saves the result to
-   the specified path `./src/data`.
+   > This command runs the scraping for the `English` `Premier League 2022-2023` in `graphical mode` and saves the
+   results in `CSV` format to the specified path `./src/data`.
 
 ## Data Example
 
-The data returned by the crawler is in JSON format and includes information such as match date, team names, scores, and
-statistics.
+The data returned by the scraping includes information such as match date, team names, scores, and statistics.
+
+#### JSON Format
 
 ```json
 {
@@ -93,6 +96,15 @@ statistics.
 }
 ```
 
+#### CSV Format
+
+```csv
+matchId,date,home.name,home.image,away.name,away.image,result.home,result.away,result.penalty,result.status,Expected Goals (xG).home,Expected Goals (xG).away,...
+GCMMfLmA,17.07.2023 20:00,Goias,https://static.example.com/image/goias.png,Atletico-MG,https://static.example.com/image/atletico-mg.png,0,0,FINISHED,1.79,0.26
+```
+
+#### Parameters
+
 | Parameter    | Type               | Description                      |
 |:-------------|:-------------------|:---------------------------------|
 | `date`       | `string`           | The date and time of the match.  |
@@ -101,21 +113,50 @@ statistics.
 | `result`     | `object:Result`    | Result of the match.             |
 | `statistics` | `array<Statistic>` | An array of match statistics.    |
 
-### Team
+### Teams
 
-```json
-{
-  "name": "Atletico-MG",
-  "image": "https://static.example.com/image/atletico-mg.png"
-}
-```
+#### Parameters
 
 | Parameter | Type     | Description                 |
 |:----------|:---------|:----------------------------|
 | `name`    | `string` | The name of the team.       |
 | `image`   | `string` | The URL of the team's logo. |
 
+#### JSON Format
+
+```json
+
+{
+   "home": {
+      "name": "Goias",
+      "image": "https://static.example.com/image/goias.png"
+   },
+   "away": {
+      "name": "Atletico-MG",
+      "image": "https://static.example.com/image/atletico-mg.png"
+   }
+}
+```
+
+#### CSV Format
+
+```csv
+home.name,home.image,away.name,away.image
+Goias,https://static.example.com/image/goias.png,Atletico-MG,https://static.example.com/image/atletico-mg.png
+```
+
 ### Result
+
+#### Parameters
+
+| Parameter | Type      | Description                                                   |
+|:----------|:----------|:--------------------------------------------------------------|
+| `home`    | `string`  | The score of the home team.                                   |
+| `away`    | `string`  | The score of the away team.                                   |
+| `penalty` | `string?` | The number of penalties awarded in the match (if applicable). |
+| `status`  | `string`  | The status of the match.                                      |
+
+#### JSON Format
 
 ```json
 {
@@ -125,23 +166,16 @@ statistics.
   "status": "FINISHED"
 }
 ```
+#### CSV Format
 
-| Parameter | Type      | Description                                                   |
-|:----------|:----------|:--------------------------------------------------------------|
-| `home`    | `string`  | The score of the home team.                                   |
-| `away`    | `string`  | The score of the away team.                                   |
-| `penalty` | `string?` | The number of penalties awarded in the match (if applicable). |
-| `status`  | `string`  | The status of the match.                                      |
+```csv
+result.home,result.away,result.penalty,result.status
+0,0,,FINISHED
+```
 
 ### Statistics
 
-```json
-{
-  "categoryName": "Expected Goals (xG)",
-  "homeValue": "1.79",
-  "awayValue": "0.26"
-}
-```
+#### Parameters
 
 | Parameter      | Type     | Description                                   |
 |:---------------|:---------|:----------------------------------------------|
@@ -149,6 +183,32 @@ statistics.
 | `homeValue`    | `string` | The value of the statistic for the home team. |
 | `awayValue`    | `string` | The value of the statistic for the away team. |
 
+#### JSON Format
+
+```json
+[
+   {
+     "categoryName": "Expected Goals (xG)",
+     "homeValue": "1.79",
+     "awayValue": "0.26"
+   },
+   {
+      "categoryName": "Ball Possession",
+      "homeValue": "42%",
+      "awayValue": "58%"
+   },
+   ...
+]
+```
+
+#### CSV Format
+
+```csv
+Expected Goals (xG).home,Expected Goals (xG).away,Ball Possession.home,Ball Possession.away,...
+1.79,0.26,42%,58%,...
+```
+
 ---
 
-If you encounter any issues or have suggestions for improvements, feel free to [open an issue](https://github.com/gustavofariaa/FlashscoreScraping/issues).
+If you encounter any issues or have suggestions for improvements, feel free
+to [open an issue](https://github.com/gustavofariaa/FlashscoreScraping/issues).

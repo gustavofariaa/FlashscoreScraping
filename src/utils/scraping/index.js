@@ -1,7 +1,4 @@
-import fs from "fs";
-import path from "path";
-
-import {BASE_URL} from "../constants/index.js";
+import {BASE_URL} from "../../constants/index.js";
 
 export const getMatchIdList = async (browser, country, league) => {
   const page = await browser.newPage();
@@ -65,21 +62,4 @@ export const getMatchData = async (browser, matchId) => {
 
   await page.close();
   return data;
-}
-
-export const writeMatchData = (data, pathW, name) => {
-  const jsonData = JSON.stringify(data, null, 2);
-  const filePath = path.join(pathW, `${name}.json`);
-
-  fs.mkdir(path.dirname(filePath), {recursive: true}, (err) => {
-    if (err) {
-      console.error("Error creating directories:", err);
-    } else {
-      fs.writeFile(filePath, jsonData, (err) => {
-        if (err) {
-          console.error("Error writing to JSON file:", err);
-        }
-      });
-    }
-  });
 }
