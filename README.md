@@ -36,14 +36,14 @@ educators can utilize the data for academic purposes.
    scraping in headless mode and specify the output file path.
 
    | Parameter  | Required | Default Value | Description                                                      |
-               |:-----------|:--------:|:-------------:|:-----------------------------------------------------------------|
-   | `country`  |    ✅     |       -       | The country for which results are to be crawled.                 |
-   | `league`   |    ✅     |       -       | The league for which results are to be crawled.                  |
+   |:-----------|:--------:|:-------------:|:-----------------------------------------------------------------|
+   | `country`  |    ✅     |       -       | The country for which results are to be crawled.                |
+   | `league`   |    ✅     |       -       | The league for which results are to be crawled.                 |
    | `headless` |          |    `false`    | When specified, the scraping runs without a user interface.      |
    | `path`     |          | `./src/data`  | The path to save the output file.                                |
    | `type`     |          |    `json`     | The format of the output file (`json` or `csv`).                 |
 
-    - **Examples:**
+   **Examples:**
 
     ```bash
     npm run start country=brazil league=serie-a-2023 headless
@@ -62,6 +62,16 @@ educators can utilize the data for academic purposes.
 ## Data Example
 
 The data returned by the scraping includes information such as match date, team names, scores, and statistics.
+
+#### Parameters
+
+| Parameter    | Type               | Description                      |
+|:-------------|:-------------------|:---------------------------------|
+| `date`       | `string`           | The date and time of the match.  |
+| `home`       | `object:Team`      | Information about the home team. |
+| `away`       | `object:Team`      | Information about the away team. |
+| `result`     | `object:Result`    | Result of the match.             |
+| `statistics` | `array<Statistic>` | An array of match statistics.    |
 
 #### JSON Format
 
@@ -100,18 +110,8 @@ The data returned by the scraping includes information such as match date, team 
 
 ```csv
 matchId,date,home.name,home.image,away.name,away.image,result.home,result.away,result.penalty,result.status,Expected Goals (xG).home,Expected Goals (xG).away,...
-GCMMfLmA,17.07.2023 20:00,Goias,https://static.example.com/image/goias.png,Atletico-MG,https://static.example.com/image/atletico-mg.png,0,0,FINISHED,1.79,0.26
+GCMMfLmA,17.07.2023 20:00,Goias,https://static.example.com/image/goias.png,Atletico-MG,https://static.example.com/image/atletico-mg.png,0,0,FINISHED,1.79,0.26,...
 ```
-
-#### Parameters
-
-| Parameter    | Type               | Description                      |
-|:-------------|:-------------------|:---------------------------------|
-| `date`       | `string`           | The date and time of the match.  |
-| `home`       | `object:Team`      | Information about the home team. |
-| `away`       | `object:Team`      | Information about the away team. |
-| `result`     | `object:Result`    | Result of the match.             |
-| `statistics` | `array<Statistic>` | An array of match statistics.    |
 
 ### Teams
 
