@@ -9,7 +9,7 @@
   "dependencies": {
     "cli-progress": "^3.12.0",
     "jsonexport": "^3.2.0",
-    "puppeteer": "^20.8.3"
+    "puppeteer": "^23.3.0"
   },
   "license": "UNLICENSED"
 }
