@@ -10,6 +10,7 @@ import { convertDataToCsv } from "./utils/csvHandler/index.js";
   const options = {
     country: null,
     league: null,
+    mode: null,
     headless: false,
     outputPath: "./src/data",
     fileType: "json",
@@ -18,12 +19,13 @@ import { convertDataToCsv } from "./utils/csvHandler/index.js";
   commandLineArgs.forEach((arg) => {
     if (arg.startsWith("country=")) options.country = arg.split("=")[1];
     if (arg.startsWith("league=")) options.league = arg.split("=")[1];
+    if (arg.startsWith("mode=")) options.mode = arg.split("=")[1];
     if (arg === "headless") options.headless = "shell";
     if (arg.startsWith("path=")) options.outputPath = arg.split("=")[1];
     if (arg.startsWith("type=")) options.fileType = arg.split("=")[1];
   });
 
-  const { country, league, headless, fileType, outputPath } = options;
+  const { country, league, mode, headless, fileType, outputPath } = options;
 
   if (!country || !league) {
     console.error("ERROR: You must set country and league parameters.");
@@ -35,7 +37,7 @@ import { convertDataToCsv } from "./utils/csvHandler/index.js";
 
   const browser = await puppeteer.launch({ headless });
 
-  const matchIdList = await getMatchIdList(browser, country, league);
+  const matchIdList = await getMatchIdList(browser, country, league, mode);
 
   const progressBar = new cliProgress.SingleBar({
     format: "Progress {bar} {percentage}% | {value}/{total}",
@@ -54,14 +56,14 @@ import { convertDataToCsv } from "./utils/csvHandler/index.js";
         writeDataToFile(
           matchData,
           outputPath,
-          `${country}-${league}`,
+          `${country}-${league}-${mode}`,
           fileType
         );
         break;
 
       case "csv":
         const csvData = convertDataToCsv(matchData);
-        writeDataToFile(csvData, outputPath, `${country}-${league}`, fileType);
+        writeDataToFile(csvData, outputPath, `${country}-${league}-${mode}`, fileType);
         break;
 
       default:

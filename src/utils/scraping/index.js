@@ -1,9 +1,9 @@
 import { BASE_URL } from "../../constants/index.js";
 
-export const getMatchIdList = async (browser, country, league) => {
+export const getMatchIdList = async (browser, country, league, mode) => {
   const page = await browser.newPage();
 
-  const url = `${BASE_URL}/football/${country}/${league}/results/`;
+  const url = `${BASE_URL}/football/${country}/${league}/${mode}/`;
   await page.goto(url);
 
   while (true) {
