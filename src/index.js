@@ -49,7 +49,7 @@ import { convertDataToCsv } from "./utils/csvHandler/index.js";
 
   const matchData = {};
   for (const matchId of matchIdList) {
-    matchData[matchId] = await getMatchData(browser, matchId);
+    matchData[matchId] = await getMatchData(browser, matchId, mode);
 
     switch (fileType) {
       case "json":
