@@ -1,80 +1,50 @@
-import puppeteer from "puppeteer";
-import cliProgress from "cli-progress";
+import puppeteer from 'puppeteer';
 
-import { getMatchData, getMatchIdList } from "./utils/scraping/index.js";
-import { writeDataToFile } from "./utils/fileHandler/index.js";
-import { convertDataToCsv } from "./utils/csvHandler/index.js";
+import { getMatchData, getMatchIdList } from './utils/scraping/index.js';
+import { initializeProgressBar, parseArguments, selectCountry, selectFileType, selectLeague, selectLeagueSeason, start, stop } from './utils/cmd/index.js';
+import { handleFileType } from './utils/fileHandler/index.js';
+import { BASE_URL, OUTPUT_PATH } from './constants/index.js';
 
 (async () => {
-  const commandLineArgs = process.argv.slice(2);
-  const options = {
-    country: null,
-    league: null,
-    headless: false,
-    outputPath: "./src/data",
-    fileType: "json",
-  };
+  const options = parseArguments();
 
-  commandLineArgs.forEach((arg) => {
-    if (arg.startsWith("country=")) options.country = arg.split("=")[1];
-    if (arg.startsWith("league=")) options.league = arg.split("=")[1];
-    if (arg === "headless") options.headless = "shell";
-    if (arg.startsWith("path=")) options.outputPath = arg.split("=")[1];
-    if (arg.startsWith("type=")) options.fileType = arg.split("=")[1];
-  });
+  const browser = await puppeteer.launch({ headless: options.headless });
 
-  const { country, league, headless, fileType, outputPath } = options;
+  if (options.fileType === null) options.fileType = await selectFileType();
 
-  if (!country || !league) {
-    console.error("ERROR: You must set country and league parameters.");
-    console.error(
-      "For usage instructions, please refer to the documentation at https://github.com/gustavofariaa/FlashscoreScraping"
-    );
-    return;
-  }
+  const selectedCountry = options.country ? { name: options.country } : await selectCountry(browser);
+  const selectedLeague = options.league ? { name: options.league } : await selectLeague(browser, selectedCountry?.id);
 
-  const browser = await puppeteer.launch({ headless });
+  const selectedLeagueSeason = selectedLeague?.url
+    ? await selectLeagueSeason(browser, selectedLeague?.url)
+    : { name: selectedLeague?.name, url: `${BASE_URL}/football/${selectedCountry?.name}/${selectedLeague?.name}` };
 
-  const matchIdList = await getMatchIdList(browser, country, league);
+  const fileName = `${selectedCountry?.name}_${selectedLeagueSeason?.name}`
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_|_$/g, '');
 
-  const progressBar = new cliProgress.SingleBar({
-    format: "Progress {bar} {percentage}% | {value}/{total}",
-    barCompleteChar: "\u2588",
-    barIncompleteChar: "\u2591",
-    hideCursor: true,
-  });
-  progressBar.start(matchIdList.length, 0);
+  console.info(`\n📝 Data collection has started!`);
+  console.info(`The league data will be saved to: ${OUTPUT_PATH}/${fileName}.${options.fileType}`);
+
+  start();
+  const matchIdList = await getMatchIdList(browser, selectedLeagueSeason?.url);
+  stop();
+
+  console.info('');
+  const progressBar = initializeProgressBar(matchIdList.length);
 
   const matchData = {};
   for (const matchId of matchIdList) {
     matchData[matchId] = await getMatchData(browser, matchId);
-
-    switch (fileType) {
-      case "json":
-        writeDataToFile(
-          matchData,
-          outputPath,
-          `${country}-${league}`,
-          fileType
-        );
-        break;
-
-      case "csv":
-        const csvData = convertDataToCsv(matchData);
-        writeDataToFile(csvData, outputPath, `${country}-${league}`, fileType);
-        break;
-
-      default:
-        console.error("ERROR: Invalid file type.");
-        console.error(
-          "For usage instructions, please refer to the documentation at https://github.com/gustavofariaa/FlashscoreScraping"
-        );
-    }
-
+    handleFileType(matchData, options.fileType, fileName);
     progressBar.increment();
   }
 
   progressBar.stop();
+
+  console.info('\n✅ Data collection and file writing completed!');
+  console.info(`The data has been successfully saved to: ${OUTPUT_PATH}/${fileName}.${options.fileType}\n`);
 
   await browser.close();
 })();
