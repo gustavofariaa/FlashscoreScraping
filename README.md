@@ -9,6 +9,8 @@ This project serves users seeking reliable sports results data. Sports enthusias
 to track their favorite teams, analyze past results, and predict future outcomes. Additionally, researchers,
 students, and educators can utilize the data for academic purposes.
 
+<img src=".github/FlashscoreScraping.gif" alt="logo" width=600px>
+
 ## Getting Started
 
 To get started with FlashscoreScraping, follow these steps:

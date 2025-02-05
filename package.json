@@ -1,6 +1,6 @@
 {
   "name": "flashscore-scraping",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "A scraping tool for retrieving football data.",
   "type": "module",
   "scripts": {
