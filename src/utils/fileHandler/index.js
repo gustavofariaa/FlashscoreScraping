@@ -1,22 +1,39 @@
-import fs from "fs";
-import path from "path";
-import jsonexport from "jsonexport";
+import fs from 'fs';
+import path from 'path';
+import jsonexport from 'jsonexport';
 
-export const writeDataToFile = (data, outputPath, fileName, fileType) => {
+import { OUTPUT_PATH } from '../../constants/index.js';
+
+export const handleFileType = (matchData, fileType, fileName) => {
   switch (fileType) {
-    case "json":
+    case 'json':
+      writeDataToFile(matchData, OUTPUT_PATH, fileName, fileType);
+      break;
+
+    case 'csv':
+      const csvData = convertDataToCsv(matchData);
+      writeDataToFile(csvData, OUTPUT_PATH, fileName, fileType);
+      break;
+
+    default:
+      console.error('\n❌ ERROR: Invalid file type specified.');
+      console.info('Please refer to the documentation for usage instructions: https://github.com/gustavofariaa/FlashscoreScraping\n');
+  }
+};
+
+const writeDataToFile = (data, outputPath, fileName, fileType) => {
+  switch (fileType) {
+    case 'json':
       writeJsonToFile(data, outputPath, fileName);
       break;
 
-    case "csv":
+    case 'csv':
       writeCsvToFile(data, outputPath, fileName);
       break;
 
     default:
-      console.error("ERROR: Invalid file type.");
-      console.error(
-        "For usage instructions, please refer to the documentation at https://github.com/gustavofariaa/FlashscoreScraping"
-      );
+      console.error('ERROR: Invalid file type.');
+      console.error('For usage instructions, please refer to the documentation at https://github.com/gustavofariaa/FlashscoreScraping');
   }
 };
 
@@ -42,10 +59,7 @@ const writeCsvToFile = (data, outputPath, fileName) => {
       fs.mkdirSync(path.dirname(filePath), { recursive: true });
       fs.writeFileSync(filePath, fileContent);
     } catch (error) {
-      console.error(
-        `Error creating directories or writing to CSV file:`,
-        error
-      );
+      console.error(`Error creating directories or writing to CSV file:`, error);
     }
   });
 };

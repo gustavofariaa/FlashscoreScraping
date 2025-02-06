@@ -5,75 +5,72 @@
 Flashscore is a popular website providing live scores, statistics, and news across various sports. However, it lacks an
 official API for developers to access its data. This is where FlashscoreScraping comes in.
 
-This project caters to users seeking reliable sports results data. Sports enthusiasts can leverage the scraper's data to
-track their favorite teams, analyze past results, and predict future outcomes. Moreover, researchers, students, and
-educators can utilize the data for academic purposes.
+This project serves users seeking reliable sports results data. Sports enthusiasts can use the scraper data to
+to track their favorite teams, analyze past results, and predict future outcomes. Additionally, researchers,
+students, and educators can utilize the data for academic purposes.
+
+<img src=".github/FlashscoreScraping.gif" alt="logo" width=600px>
 
 ## Getting Started
 
+To get started with FlashscoreScraping, follow these steps:
+
 1. Clone the project:
 
-    ```bash
-    git clone https://github.com/gustavofariaa/FlashscoreScraping.git
-    ```
+   ```bash
+   git clone https://github.com/gustavofariaa/FlashscoreScraping.git
+   ```
 
 1. Navigate to the project directory:
 
-    ```bash
-    cd FlashscoreScraping
-    ```
+   ```bash
+   cd FlashscoreScraping
+   ```
 
 1. Install dependencies:
 
-    ```bash
-    npm install
-    ```
+   ```bash
+   npm install
+   ```
 
-1. Start the scraping:
+1. Run the scraper:
 
-   To utilize the scraping, you need to specify a country and a league. Additionally, you can indicate whether to run
-   the
-   scraping in headless mode and specify the output file path.
+   Once everything is installed, you can run the scraper using the following command:
 
-   | Parameter  | Required | Default Value | Description                                                      |
-   |:-----------|:--------:|:-------------:|:-----------------------------------------------------------------|
-   | `country`  |    ✅     |       -       | The country for which results are to be crawled.                |
-   | `league`   |    ✅     |       -       | The league for which results are to be crawled.                 |
-   | `headless` |          |    `false`    | When specified, the scraping runs without a user interface.      |
-   | `path`     |          | `./src/data`  | The path to save the output file.                                |
-   | `type`     |          |    `json`     | The format of the output file (`json` or `csv`).                 |
+   ```bash
+   npm run start
+   ```
 
-   **Examples:**
+## Available Command-Line Parameters
 
-    ```bash
-    npm run start country=brazil league=serie-a-2023 headless
-    ```
+The scraper allows you to specify the country, league, output file type (JSON or CSV), and whether to run in headless mode.
 
-   > This command runs the s for the `Brazilian` `Serie A 2023` in `headless mode` and saves the results in `JSON`
-   format to `standard output`.
+| Parameter     | Default Value | Description                                              |
+| :------------ | :-----------: | :------------------------------------------------------- |
+| `country`     |       -       | The country for which results are to be crawled.         |
+| `league`      |       -       | The league for which results are to be crawled.          |
+| `fileType`    |    `json`     | The format of the output file (`JSON` or `CSV`).         |
+| `no-headless` |    `false`    | If set, the scraper will run with a graphical interface. |
 
-    ```bash
-    npm run start country=england league=premier-league-2022-2023 path=./src/data type=csv
-    ```
+### Example commands
 
-   > This command runs the scraping for the `English` `Premier League 2022-2023` in `graphical mode` and saves the
-   results in `CSV` format to the specified path `./src/data`.
+- Scrape Brazilian Serie A 2023 results and save as a `JSON` file:
+
+  ```bash
+  npm run start country=brazil league=serie-a-2023 fileType=json
+  ```
+
+- Scrape English Premier League 2022-2023 results with a graphical interface and save as a `CSV` file:
+
+  ```bash
+  npm run start country=england league=premier-league-2022-2023 no-headless fileType=csv
+  ```
 
 ## Data Example
 
-The data returned by the scraping includes information such as match date, team names, scores, and statistics.
+When scraping match data, you’ll receive detailed information about each match, such as the match date, teams, scores, and statistics. Below is an example of what the data might look like in `JSON` format:
 
-#### Parameters
-
-| Parameter    | Type               | Description                      |
-|:-------------|:-------------------|:---------------------------------|
-| `date`       | `string`           | The date and time of the match.  |
-| `home`       | `object:Team`      | Information about the home team. |
-| `away`       | `object:Team`      | Information about the away team. |
-| `result`     | `object:Result`    | Result of the match.             |
-| `statistics` | `array<Statistic>` | An array of match statistics.    |
-
-#### JSON Format
+### JSON Format
 
 ```json
 {
@@ -95,118 +92,57 @@ The data returned by the scraping includes information such as match date, team 
     },
     "statistics": [
       {
-        "categoryName": "Expected Goals (xG)",
+        "category": "Expected Goals (xG)",
         "homeValue": "1.79",
         "awayValue": "0.26"
-      },
-      ...
+      }
+    ],
+    "information": [
+      {
+        "category": "Referee",
+        "value": "Claus R. (Bra)"
+      }
     ]
-  },
-  ...
+  }
 }
 ```
 
-#### CSV Format
+## Data Breakdown
 
-```csv
-matchId,date,home.name,home.image,away.name,away.image,result.home,result.away,result.penalty,result.status,Expected Goals (xG).home,Expected Goals (xG).away,...
-GCMMfLmA,17.07.2023 20:00,Goias,https://static.example.com/image/goias.png,Atletico-MG,https://static.example.com/image/atletico-mg.png,0,0,FINISHED,1.79,0.26,...
-```
+1. Match Date
 
-### Teams
+   - `date`: The date and time the match took place.
 
-#### Parameters
+1. Team
 
-| Parameter | Type     | Description                 |
-|:----------|:---------|:----------------------------|
-| `name`    | `string` | The name of the team.       |
-| `image`   | `string` | The URL of the team's logo. |
+   An object representing the team, containing:
 
-#### JSON Format
+   - `name`: The team's name.
+   - `image`: The URL to the team's logo.
 
-```json
+1. Result
 
-{
-   "home": {
-      "name": "Goias",
-      "image": "https://static.example.com/image/goias.png"
-   },
-   "away": {
-      "name": "Atletico-MG",
-      "image": "https://static.example.com/image/atletico-mg.png"
-   }
-}
-```
+   The match result, including:
 
-#### CSV Format
+   - `home`: The home team's score.
+   - `away`: The away team's score.
+   - `penalty`: The penalty score, if applicable (null if not).
+   - `status`: The match status (e.g., FINISHED).
 
-```csv
-home.name,home.image,away.name,away.image
-Goias,https://static.example.com/image/goias.png,Atletico-MG,https://static.example.com/image/atletico-mg.png
-```
+1. Statistics
 
-### Result
+   An array of match statistics, each with the following structure:
 
-#### Parameters
+   - `category`: The name of the statistic (e.g., "Expected Goals (xG)").
+   - `homeValue`: The statistic value for the home team.
+   - `awayValue`: The statistic value for the away team.
 
-| Parameter | Type      | Description                                                   |
-|:----------|:----------|:--------------------------------------------------------------|
-| `home`    | `string`  | The score of the home team.                                   |
-| `away`    | `string`  | The score of the away team.                                   |
-| `penalty` | `string?` | The number of penalties awarded in the match (if applicable). |
-| `status`  | `string`  | The status of the match.                                      |
+1. Information
 
-#### JSON Format
+   An array of additional match information, including categories such as referee, stadium, and more.
 
-```json
-{
-  "home": "0",
-  "away": "0",
-  "penalty": null,
-  "status": "FINISHED"
-}
-```
-#### CSV Format
-
-```csv
-result.home,result.away,result.penalty,result.status
-0,0,,FINISHED
-```
-
-### Statistics
-
-#### Parameters
-
-| Parameter      | Type     | Description                                   |
-|:---------------|:---------|:----------------------------------------------|
-| `categoryName` | `string` | The name of the statistical category.         |
-| `homeValue`    | `string` | The value of the statistic for the home team. |
-| `awayValue`    | `string` | The value of the statistic for the away team. |
-
-#### JSON Format
-
-```json
-[
-   {
-     "categoryName": "Expected Goals (xG)",
-     "homeValue": "1.79",
-     "awayValue": "0.26"
-   },
-   {
-      "categoryName": "Ball Possession",
-      "homeValue": "42%",
-      "awayValue": "58%"
-   },
-   ...
-]
-```
-
-#### CSV Format
-
-```csv
-Expected Goals (xG).home,Expected Goals (xG).away,Ball Possession.home,Ball Possession.away,...
-1.79,0.26,42%,58%,...
-```
+   - `category`: The category of information (e.g., "Referee").
+   - `value`: The corresponding value for that category (e.g., "Claus R. (Bra)").
 
 ---
 
