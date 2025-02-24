@@ -74,33 +74,33 @@ When scraping match data, you’ll receive detailed information about each match
 
 ```json
 {
-  "2Ba0ep6H": {
-    "date": "17.07.2023 20:00",
+  "Gd4glas0": {
+    "stage": "MINEIRO - ROUND 7",
+    "date": "09.02.2025 16:00",
+    "status": "FINISHED",
     "home": {
-      "name": "Goias",
-      "image": "https://static.example.com/image/goias.png"
+      "name": "Cruzeiro",
+      "image": "https://static.flashscore.com/res/image/data/lCWrxmg5-SjJmyx86.png"
     },
     "away": {
       "name": "Atletico-MG",
-      "image": "https://static.example.com/image/atletico-mg.png"
+      "image": "https://static.flashscore.com/res/image/data/WbSJHDh5-pCk2vaSD.png"
     },
     "result": {
       "home": "0",
-      "away": "0",
-      "penalty": null,
-      "status": "FINISHED"
+      "away": "2"
     },
-    "statistics": [
-      {
-        "category": "Expected Goals (xG)",
-        "homeValue": "1.79",
-        "awayValue": "0.26"
-      }
-    ],
     "information": [
       {
         "category": "Referee",
-        "value": "Claus R. (Bra)"
+        "value": "Fernandes de Lima F. (Bra)"
+      }
+    ],
+    "statistics": [
+      {
+        "category": "Ball Possession",
+        "homeValue": "42%",
+        "awayValue": "58%"
       }
     ]
   }
@@ -111,7 +111,9 @@ When scraping match data, you’ll receive detailed information about each match
 
 1. Match Date
 
+   - `stage`: The name of the competition and round (e.g., "MINEIRO - ROUND 7").
    - `date`: The date and time the match took place.
+   - `status`: The match status (e.g., FINISHED).
 
 1. Team
 
@@ -126,8 +128,8 @@ When scraping match data, you’ll receive detailed information about each match
 
    - `home`: The home team's score.
    - `away`: The away team's score.
-   - `penalty`: The penalty score, if applicable (null if not).
-   - `status`: The match status (e.g., FINISHED).
+   - `regulationTime`: The result of the match in regular time, if applicable (null if not).
+   - `penalties`: The penalty score, if applicable (null if not).
 
 1. Statistics
 
@@ -142,7 +144,7 @@ When scraping match data, you’ll receive detailed information about each match
    An array of additional match information, including categories such as referee, stadium, and more.
 
    - `category`: The category of information (e.g., "Referee").
-   - `value`: The corresponding value for that category (e.g., "Claus R. (Bra)").
+   - `value`: The corresponding value for that category (e.g., "Fernandes de Lima F. (Bra)").
 
 ---
 
