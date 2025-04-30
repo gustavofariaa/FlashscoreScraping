@@ -1,8 +1,17 @@
 import fs from 'fs';
 import path from 'path';
 
-export const writeJsonToFile = (data, outputPath, fileName) => {
-  const filePath = path.join(outputPath, `${fileName}.json`);
+const toArray = (data) => {
+  return Object.keys(data).map((key) => ({
+    matchId: key,
+    ...JSON.parse(JSON.stringify(data[key])), // Cópia profunda
+  }));
+};
+
+export const writeJsonToFile = (data, outputPath, fileName, array = false) => {
+  if (array) data = toArray(data);
+
+  const filePath = path.join(outputPath, `${fileName}${array ? '-array' : ''}.json`);
   const fileContent = JSON.stringify(data, null, 2);
 
   try {
