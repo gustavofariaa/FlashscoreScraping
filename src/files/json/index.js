@@ -11,11 +11,7 @@ const toArray = (data) => {
 export const writeJsonToFile = (data, outputPath, fileName, array = false) => {
   if (array) data = toArray(data);
 
-<<<<<<< HEAD
   const filePath = path.join(outputPath, `${fileName}.json${array ? '-array' : ''}`);
-=======
-  const filePath = path.join(outputPath, `${fileName}${array ? '-array' : ''}.json`);
->>>>>>> main
   const fileContent = JSON.stringify(data, null, 2);
 
   try {
