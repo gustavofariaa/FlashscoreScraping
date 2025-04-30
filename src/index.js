@@ -50,7 +50,7 @@ import { handleFileType } from './files/handle/index.js';
   progressbar.stop();
 
   console.info('\n✅ Data collection and file writing completed!');
-  console.info(`The data has been successfully saved to: ${OUTPUT_PATH}/${fileName}.${options.fileType}\n`);
+  console.info(`The data has been successfully saved to: ${OUTPUT_PATH}/${fileName}.${fileType}\n`);
 
   await browser.close();
 })();

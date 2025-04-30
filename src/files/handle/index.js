@@ -9,6 +9,10 @@ export const handleFileType = (matchData, fileType, fileName) => {
       writeJsonToFile(matchData, OUTPUT_PATH, fileName);
       break;
 
+    case 'json-array':
+      writeJsonToFile(matchData, OUTPUT_PATH, fileName, true);
+      break;
+
     case 'csv':
       writeCsvToFile(matchData, OUTPUT_PATH, fileName);
       break;

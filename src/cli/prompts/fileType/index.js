@@ -1,13 +1,13 @@
 import inquirer from 'inquirer';
 
 export const selectFileType = async () => {
-  const options = ['json', 'csv'];
+  const options = ['json', 'json-array', 'csv'];
   const { choice } = await inquirer.prompt([
     {
       type: 'list',
       name: 'choice',
       message: 'Select a output file type:',
-      choices: ['json', 'csv', 'Cancel'],
+      choices: ['json', 'json-array', 'csv', 'Cancel'],
     },
   ]);
 
