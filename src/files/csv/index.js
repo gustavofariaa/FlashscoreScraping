@@ -2,8 +2,10 @@ import fs from 'fs';
 import path from 'path';
 import jsonexport from 'jsonexport';
 
-export const writeCsvToFile = (data, outputPath, fileName) => {
-  const filePath = path.join(outputPath, `${fileName}.csv`);
+import { OUTPUT_PATH } from '../../constants/index.js';
+
+export const writeCsvToFile = (data, fileName) => {
+  const filePath = path.join(OUTPUT_PATH, fileName);
 
   const csvData = convertDataToCsv(data);
 
@@ -14,7 +16,8 @@ export const writeCsvToFile = (data, outputPath, fileName) => {
       fs.mkdirSync(path.dirname(filePath), { recursive: true });
       fs.writeFileSync(filePath, fileContent);
     } catch (error) {
-      console.error(`Error creating directories or writing to CSV file:`, error);
+      console.error('❌ ERROR: Failed to create directories or write to CSV file.\n');
+      process.exit(1);
     }
   });
 };

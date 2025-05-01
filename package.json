@@ -7,6 +7,7 @@
     "start": "node src/index.js"
   },
   "dependencies": {
+    "chalk": "^5.4.1",
     "cli-loading-animation": "^1.0.6",
     "cli-progress": "^3.12.0",
     "inquirer": "^12.4.1",
