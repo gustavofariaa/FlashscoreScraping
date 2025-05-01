@@ -1,24 +1,19 @@
-import { OUTPUT_PATH } from '../../constants/index.js';
+import { FileTypes, OUTPUT_PATH } from '../../constants/index.js';
 
 import { writeJsonToFile } from '../../files/json/index.js';
 import { writeCsvToFile } from '../../files/csv/index.js';
 
-export const handleFileType = (matchData, fileType, fileName) => {
+export const handleFileType = (data, fileName, fileType) => {
+  const outputFileName = `${fileName}${fileType.extension}`;
+
   switch (fileType) {
-    case 'json':
-      writeJsonToFile(matchData, OUTPUT_PATH, fileName);
+    case FileTypes.JSON:
+    case FileTypes.JSON_ARRAY:
+      writeJsonToFile(data, outputFileName, fileType === FileTypes.JSON_ARRAY);
       break;
 
-    case 'json-array':
-      writeJsonToFile(matchData, OUTPUT_PATH, fileName, true);
+    case FileTypes.CSV:
+      writeCsvToFile(data, outputFileName);
       break;
-
-    case 'csv':
-      writeCsvToFile(matchData, OUTPUT_PATH, fileName);
-      break;
-
-    default:
-      console.error('\n❌ ERROR: Invalid file type specified.');
-      console.info('Please refer to the documentation for usage instructions: https://github.com/gustavofariaa/FlashscoreScraping\n');
   }
 };

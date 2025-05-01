@@ -2,7 +2,7 @@ import { BASE_URL } from '../../../constants/index.js';
 import { openPageAndNavigate, waitAndClick, waitForSelectorSafe } from '../../index.js';
 
 export const getMatchIdList = async (browser, leagueSeasonUrl) => {
-  const page = await openPageAndNavigate(browser, `${leagueSeasonUrl}/results`); //fixtures para todos os jogos
+  const page = await openPageAndNavigate(browser, `${leagueSeasonUrl}/results`);
 
   while (true) {
     try {

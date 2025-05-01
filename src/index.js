@@ -20,7 +20,7 @@ import { handleFileType } from './files/handle/index.js';
   const options = parseArguments();
   const browser = await puppeteer.launch({ headless: options.headless });
 
-  const fileType = options.fileType || (await selectFileType());
+  const fileType = await selectFileType(options?.fileType);
   const country = options.country ? { name: options.country } : await selectCountry(browser);
   const league = options.league ? { name: options.league } : await selectLeague(browser, country?.id);
 
@@ -32,7 +32,7 @@ import { handleFileType } from './files/handle/index.js';
     .replace(/^_|_$/g, '');
 
   console.info(`\n📝 Data collection has started!`);
-  console.info(`The league data will be saved to: ${OUTPUT_PATH}/${fileName}.${fileType}`);
+  console.info(`The league data will be saved to: ${OUTPUT_PATH}/${fileName}${fileType.extension}`);
 
   start();
   const matchIdList = await getMatchIdList(browser, season?.url);
@@ -43,14 +43,14 @@ import { handleFileType } from './files/handle/index.js';
   const matchData = {};
   for (const matchId of matchIdList) {
     matchData[matchId] = await getMatchData(browser, matchId);
-    handleFileType(matchData, fileType, fileName);
+    handleFileType(matchData, fileName, fileType);
     progressbar.increment();
   }
 
   progressbar.stop();
 
   console.info('\n✅ Data collection and file writing completed!');
-  console.info(`The data has been successfully saved to: ${OUTPUT_PATH}/${fileName}.${fileType}\n`);
+  console.info(`The data has been successfully saved to: ${OUTPUT_PATH}/${fileName}${fileType.extension}\n`);
 
   await browser.close();
 })();
