@@ -16,8 +16,7 @@ export const writeCsvToFile = (data, fileName) => {
       fs.mkdirSync(path.dirname(filePath), { recursive: true });
       fs.writeFileSync(filePath, fileContent);
     } catch (error) {
-      console.error('❌ ERROR: Failed to create directories or write to CSV file.\n');
-      process.exit(1);
+      throw Error(`❌ Failed to create directories or write the CSV file`);
     }
   });
 };

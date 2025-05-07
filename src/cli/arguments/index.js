@@ -17,15 +17,25 @@ export const parseArguments = () => {
   });
 
   if (options.fileType) {
-    const current = options.fileType;
-    options.fileType = Object.values(FileTypes).find((type) => type.argument === options.fileType);
-    if (!options.fileType) {
+    const userInput = options.fileType;
+    const matchedType = Object.values(FileTypes).find((type) => type.argument === userInput);
+
+    if (!matchedType) {
       const acceptedTypes = Object.values(FileTypes)
         .map((type) => `"${type.argument}"`)
         .join(', ');
-      console.error(`❌ ERROR: Invalid fileType=${current}\nAccepted types are: ${acceptedTypes}\n`);
-      process.exit(1);
+      throw Error(`❌ Invalid fileType: "${userInput}"\n` + `Accepted file types are: ${acceptedTypes}`);
     }
+
+    options.fileType = matchedType;
+  }
+
+  if (options.league && !options.country) {
+    throw Error(
+      `❌ Missing required argument: country=<country-name>\n` +
+        `You provided a league "${options.league}" but did not specify a country\n` +
+        `Usage example: country=<country-name> league=<league-name>`
+    );
   }
 
   return options;

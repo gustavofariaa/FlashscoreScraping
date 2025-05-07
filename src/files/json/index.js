@@ -13,8 +13,7 @@ export const writeJsonToFile = (data, fileName, asArray) => {
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
     fs.writeFileSync(filePath, fileContent, 'utf-8');
   } catch (error) {
-    console.error('❌ ERROR: Failed to create directories or write to JSON file.\n');
-    process.exit(1);
+    throw Error(`❌ Failed to create directories or write the JSON file`);
   }
 };
 

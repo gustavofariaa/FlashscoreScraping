@@ -20,8 +20,8 @@ export const selectLeague = async (browser, countryId) => {
   ]);
 
   if (choice === 'Cancel') {
-    console.log('No option selected. Exiting...');
-    process.exit(1);
+    console.info('\nNo option selected. Exiting...\n');
+    throw Error;
   }
 
   return leagues.find((league) => league.name === choice);

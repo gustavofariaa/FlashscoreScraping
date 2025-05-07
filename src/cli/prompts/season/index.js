@@ -20,8 +20,8 @@ export const selectSeason = async (browser, leagueUrl) => {
   ]);
 
   if (choice === 'Cancel') {
-    console.log('No option selected. Exiting...');
-    process.exit(1);
+    console.info('\nNo option selected. Exiting...\n');
+    throw Error;
   }
 
   return seasons.find((season) => season.name === choice);

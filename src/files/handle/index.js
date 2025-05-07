@@ -1,9 +1,9 @@
-import { FileTypes, OUTPUT_PATH } from '../../constants/index.js';
+import { FileTypes } from '../../constants/index.js';
 
 import { writeJsonToFile } from '../../files/json/index.js';
 import { writeCsvToFile } from '../../files/csv/index.js';
 
-export const handleFileType = (data, fileName, fileType) => {
+export const writeDataToFile = (data, fileName, fileType) => {
   const outputFileName = `${fileName}${fileType.extension}`;
 
   switch (fileType) {

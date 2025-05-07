@@ -21,6 +21,11 @@ export const getMatchIdList = async (browser, leagueSeasonUrl) => {
   });
 
   await page.close();
+
+  if (matchIdList.length === 0) {
+    throw Error(`❌ No matches found on the results page\n` + `Please verify that the league name provided is correct`);
+  }
+
   return matchIdList;
 };
 
