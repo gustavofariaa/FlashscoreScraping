@@ -1,6 +1,6 @@
 import { BASE_URL } from '../../../constants/index.js';
 import { openPageAndNavigate, waitAndClick, waitForSelectorSafe, delayBetweenRequests } from '../../index.js';
-import { handleFileType } from '../../../files/handle/index.js';
+import { normalizeStats, validateStats } from '../../../utils/statsnormalizer/index.js';
 
 // --- Config ---
 const MAX_RETRIES = 3;
@@ -233,11 +233,20 @@ export const getMatchData = async (browser, matchId, retryCount = 0) => {
           });
           
           await new Promise(r => setTimeout(r, 2000));
-          statistics = await extractMatchStatistics(page);
+          
+          // Extract and normalize stats
+          const rawStats = await extractMatchStatistics(page);
+          statistics = normalizeStats(rawStats);
+          
+          // Validate stats
+          const validation = validateStats(statistics);
+          if (!validation.isValid) {
+            console.warn(`⚠️  Stats validation issues for match ${matchId}:`, validation.issues);
+          }
         }
         
-        // Fallback to direct URLs if needed
-        if (statistics.length < 38) {
+        // Fallback to direct URLs if needed (less than 35 stats means incomplete)
+        if (statistics.length < 35) {
           const tabUrls = [
             `${BASE_URL}/match/${matchId}/#/match-summary/match-statistics/0`,
             `${BASE_URL}/match/${matchId}/#/match-summary/match-statistics/1`,
@@ -258,13 +267,18 @@ export const getMatchData = async (browser, matchId, retryCount = 0) => {
               });
               await new Promise(r => setTimeout(r, 2000));
               
-              const newStats = await extractMatchStatistics(page);
+              // Extract and normalize stats
+              const rawStats = await extractMatchStatistics(page);
+              const normalizedStats = normalizeStats(rawStats);
               
-              if (newStats.length >= 38 && newStats.length <= 50) {
-                statistics = newStats;
+              // Validate and use if complete
+              const validation = validateStats(normalizedStats);
+              if (validation.isValid && normalizedStats.length === 35) {
+                statistics = normalizedStats;
                 break;
-              } else if (newStats.length > statistics.length) {
-                statistics = newStats;
+              } else if (normalizedStats.length > statistics.length) {
+                // Keep the most complete version even if not perfect
+                statistics = normalizedStats;
               }
             } catch (err) {
               // Continue to next URL
