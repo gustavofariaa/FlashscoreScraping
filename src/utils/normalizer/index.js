@@ -1,5 +1,8 @@
 /**
- * Statistics Normalizer - Ensures consistent stats across all matches
+ * Normalizer Module
+ * Handles normalization of scraped data for consistency
+ * Currently supports: Statistics normalization
+ * Future: Incidents normalization
  */
 
 // Standard statistics ordered by section (35 stats total)

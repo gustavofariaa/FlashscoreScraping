@@ -1,8 +1,9 @@
 /**
  * Dashboard Display for Scraper
  */
-
-const DASHBOARD_LINES = 9; // Number of lines the dashboard uses
+const DASHBOARD_LINES = 11;
+let isFirstRender = true;
+let lastDashboardHeight = 0;
 
 /**
  * Format time duration (milliseconds) to readable string
@@ -34,7 +35,7 @@ const formatMemory = (bytes) => {
 /**
  * Create progress bar
  */
-const createProgressBar = (current, total, width = 20) => {
+const createProgressBar = (current, total, width = 25) => {
   const percentage = Math.floor((current / total) * 100);
   const filled = Math.floor((current / total) * width);
   const empty = width - filled;
@@ -43,26 +44,16 @@ const createProgressBar = (current, total, width = 20) => {
   return `${bar}  ${percentage}% (${current}/${total})`;
 };
 
-// Track if this is the first render
-let isFirstRender = true;
-
 /**
- * Clear dashboard from terminal (move cursor up and clear)
+ * Clear the console completely
  */
-export const clearDashboard = () => {
-  if (isFirstRender) {
-    return; // Don't clear on first render
-  }
-  
-  // Move cursor up and clear lines
-  for (let i = 0; i < DASHBOARD_LINES; i++) {
-    process.stdout.write('\x1B[1A'); // Move up one line
-    process.stdout.write('\x1B[2K'); // Clear line
-  }
+const clearConsole = () => {
+  // Clear console for Windows/Unix
+  process.stdout.write('\x1Bc');
 };
 
 /**
- * Display dashboard
+ * Display dashboard (clears and redraws entire screen)
  */
 export const displayDashboard = (stats) => {
   const {
@@ -73,39 +64,56 @@ export const displayDashboard = (stats) => {
     processed = 0,
     success = 0,
     failed = 0,
+    succeededInc = 0,
+    failedInc = 0,
     avgTime = 0,
     memory = 0,
     restarts = 0,
+    checkpointCount = 0,
+    checkpointPosition = 0,
     startTime = Date.now(),
     eta = 0
   } = stats;
   
-  // Calculate percentage and duration
-  const percentage = total > 0 ? Math.floor((processed / total) * 100) : 0;
+  // Calculate values
   const duration = formatDuration(Date.now() - startTime);
   const etaFormatted = formatDuration(eta);
   const memoryFormatted = formatMemory(memory);
   const avgTimeFormatted = avgTime > 0 ? `${avgTime.toFixed(1)}s` : 'N/A';
   
-  // Build the dashboard
-  const lines = [
-    '╔════════════════════════════════════════════════════════╗',
-    '║            FLASHSCORE SCRAPER v2.0                     ║',
-    `║  ${country} → ${league} ${season}`.padEnd(57) + '║',
-    '╠════════════════════════════════════════════════════════╣',
-    `║  Progress:  ${createProgressBar(processed, total)}`.padEnd(57) + '║',
-    `║  ✅ Success: ${success}  |  ❌ Failed: ${failed}  |  ⏱️  Avg: ${avgTimeFormatted}`.padEnd(57) + '║',
-    `║  💾 Memory:  ${memoryFormatted}  |  🔄 Restarts: ${restarts}`.padEnd(57) + '║',
-    `║  ⏱️  Duration: ${duration}  |  📅 ETA: ${etaFormatted}`.padEnd(57) + '║',
-    '╚════════════════════════════════════════════════════════╝'
-  ];
+  // Build the dashboard with proper padding (70 chars width)
+  const progressBar = createProgressBar(processed, total);
+  const line1 = '╔══════════════════════════════════════════════════════════════════════╗';
+  const line2 = '║                    FLASHSCORE SCRAPER v2.0                           ║';
+  const line3 = `║  ${country} → ${league} ${season}`.padEnd(71, ' ') + '║';
+  const line4 = '╠══════════════════════════════════════════════════════════════════════╣';
+  const line5 = `║  Progress:  ${progressBar}`.padEnd(71, ' ') + '║';
+  const line6 = `║  ✅ Success: ${success}  |  ❌ Failed: ${failed}  |  ⏱️  Avg: ${avgTimeFormatted}`.padEnd(71, ' ') + '║';
+  const line7 = `║  📊 Incidents: ✅ ${succeededInc}  |  ❌ ${failedInc}`.padEnd(71, ' ') + '║';
+  const line8 = `║  💾 Memory: ${memoryFormatted}  |  🔄 Restarts: ${restarts}`.padEnd(71, ' ') + '║';
+  const line9 = `║  💾 Checkpoint: ${checkpointPosition}/${total} (${checkpointCount} saves)`.padEnd(71, ' ') + '║';
+  const line10 = `║  ⏱️  Duration: ${duration}  |  📅 ETA: ${etaFormatted}`.padEnd(71, ' ') + '║';
+  const line11 = '╚══════════════════════════════════════════════════════════════════════╝';
   
-  // Clear previous dashboard (except on first render)
-  clearDashboard();
+  // Clear console on every update (except first render for context)
+  if (!isFirstRender) {
+    clearConsole();
+  }
   isFirstRender = false;
   
   // Print dashboard
-  console.log(lines.join('\n'));
+  console.log(line1);
+  console.log(line2);
+  console.log(line3);
+  console.log(line4);
+  console.log(line5);
+  console.log(line6);
+  console.log(line7);
+  console.log(line8);
+  console.log(line9);
+  console.log(line10);
+  console.log(line11);
+  console.log(''); // Empty line for separation
 };
 
 /**

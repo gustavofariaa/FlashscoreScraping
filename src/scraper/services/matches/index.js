@@ -1,6 +1,8 @@
 import { BASE_URL } from '../../../constants/index.js';
 import { openPageAndNavigate, waitAndClick, waitForSelectorSafe, delayBetweenRequests } from '../../index.js';
-import { normalizeStats, validateStats } from '../../../utils/statsnormalizer/index.js';
+import { handleFileType } from '../../../files/handle/index.js';
+import { normalizeStats, validateStats } from '../../../utils/normalizer/index.js';
+import { extractIncidents } from '../incidents/index.js';
 
 // --- Config ---
 const MAX_RETRIES = 3;
@@ -202,6 +204,12 @@ export const getMatchData = async (browser, matchId, retryCount = 0) => {
     let matchData = await extractMatchData(page);
     let information = await extractMatchInformation(page);
 
+    // Extract incidents (only for FINISHED matches)
+    let incidents = [];
+    if (matchData.status === 'FINISHED') {
+      incidents = await extractIncidents(page, matchId);
+    }
+
     // Extract statistics
     let statistics = [];
     
@@ -233,20 +241,11 @@ export const getMatchData = async (browser, matchId, retryCount = 0) => {
           });
           
           await new Promise(r => setTimeout(r, 2000));
-          
-          // Extract and normalize stats
-          const rawStats = await extractMatchStatistics(page);
-          statistics = normalizeStats(rawStats);
-          
-          // Validate stats
-          const validation = validateStats(statistics);
-          if (!validation.isValid) {
-            console.warn(`⚠️  Stats validation issues for match ${matchId}:`, validation.issues);
-          }
+          statistics = await extractMatchStatistics(page);
         }
         
-        // Fallback to direct URLs if needed (less than 35 stats means incomplete)
-        if (statistics.length < 35) {
+        // Fallback to direct URLs if needed
+        if (statistics.length < 38) {
           const tabUrls = [
             `${BASE_URL}/match/${matchId}/#/match-summary/match-statistics/0`,
             `${BASE_URL}/match/${matchId}/#/match-summary/match-statistics/1`,
@@ -267,18 +266,13 @@ export const getMatchData = async (browser, matchId, retryCount = 0) => {
               });
               await new Promise(r => setTimeout(r, 2000));
               
-              // Extract and normalize stats
-              const rawStats = await extractMatchStatistics(page);
-              const normalizedStats = normalizeStats(rawStats);
+              const newStats = await extractMatchStatistics(page);
               
-              // Validate and use if complete
-              const validation = validateStats(normalizedStats);
-              if (validation.isValid && normalizedStats.length === 35) {
-                statistics = normalizedStats;
+              if (newStats.length >= 38 && newStats.length <= 50) {
+                statistics = newStats;
                 break;
-              } else if (normalizedStats.length > statistics.length) {
-                // Keep the most complete version even if not perfect
-                statistics = normalizedStats;
+              } else if (newStats.length > statistics.length) {
+                statistics = newStats;
               }
             } catch (err) {
               // Continue to next URL
@@ -293,8 +287,19 @@ export const getMatchData = async (browser, matchId, retryCount = 0) => {
 
     await page.close();
 
+    // Normalize and validate statistics
+    if (statistics.length > 0) {
+      statistics = normalizeStats(statistics);
+      
+      // Validate in development (optional - can remove in production)
+      const validation = validateStats(statistics);
+      if (!validation.isValid) {
+        console.warn(`⚠️ Stats validation issues for ${matchId}:`, validation.issues);
+      }
+    }
+    
     // Silent success - no log
-    return { ...matchData, information, statistics };
+    return { ...matchData, information, incidents, statistics };
   } catch (error) {
     if (page) {
       try {

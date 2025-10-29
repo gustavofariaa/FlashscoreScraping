@@ -68,6 +68,14 @@ const sleep = ms => new Promise(res => setTimeout(res, ms));
   let processedMatchIds = checkpoint?.processedMatchIds || [];
   let startIndex = checkpoint?.lastIndex ? checkpoint.lastIndex + 1 : 0;
   
+  // Initialize incident counters
+  let succeededIncCount = checkpoint?.succeededIncCount || 0;
+  let failedIncCount = checkpoint?.failedIncCount || 0;
+  
+  // Initialize checkpoint tracking
+  let checkpointCount = checkpoint?.checkpointCount || 0;
+  let checkpointPosition = checkpoint?.checkpointPosition || 0;
+  
   // Timing tracking
   const scrapingStartTime = Date.now();
   let matchTimes = []; // Track time per match for average
@@ -81,9 +89,13 @@ const sleep = ms => new Promise(res => setTimeout(res, ms));
     processed: startIndex,
     success: successCount,
     failed: failedMatches.length,
+    succeededInc: succeededIncCount,
+    failedInc: failedIncCount,
     avgTime: 0,
     memory: 0,
     restarts: browserManager.getRestartCount(),
+    checkpointCount: checkpointCount,
+    checkpointPosition: checkpointPosition,
     startTime: scrapingStartTime,
     eta: 0
   };
@@ -117,12 +129,20 @@ const sleep = ms => new Promise(res => setTimeout(res, ms));
         successCount++;
         success = true;
         
+        // Track incidents (only for FINISHED matches)
+        if (data.status === 'FINISHED') {
+          if (data.incidents && data.incidents.length > 0) {
+            succeededIncCount++;
+          } else {
+            failedIncCount++;
+          }
+        }
+        
         // Track timing
         const matchDuration = (Date.now() - matchStartTime) / 1000; // in seconds
         matchTimes.push(matchDuration);
         if (matchTimes.length > 50) matchTimes.shift(); // Keep last 50 for rolling average
         
-        // Silent success - no console.log here
         break;
       } catch (err) {
         // Check if error is timeout/memory related
@@ -131,12 +151,11 @@ const sleep = ms => new Promise(res => setTimeout(res, ms));
                                err.message.includes('Target closed');
         
         if (isTimeoutError && attempt < MATCH_RETRIES) {
-          console.warn(`⚠️ Timeout error - forcing browser restart`);
           await browserManager.restart('timeout error');
         }
         
         if (attempt >= MATCH_RETRIES) {
-          console.warn(`⚠️ All attempts failed for match ${matchId}: ${err.message}`);
+          // Silent - only dashboard will show failed count
         }
         
         if (attempt < MATCH_RETRIES) {
@@ -167,26 +186,41 @@ const sleep = ms => new Promise(res => setTimeout(res, ms));
     dashboardStats.processed = processedMatchIds.length;
     dashboardStats.success = successCount;
     dashboardStats.failed = failedMatches.length;
+    dashboardStats.succeededInc = succeededIncCount;
+    dashboardStats.failedInc = failedIncCount;
     dashboardStats.avgTime = avgTime;
     dashboardStats.memory = memoryUsage;
     dashboardStats.restarts = browserManager.getRestartCount();
+    dashboardStats.checkpointCount = checkpointCount;
+    dashboardStats.checkpointPosition = checkpointPosition;
     dashboardStats.eta = eta;
     
     displayDashboard(dashboardStats);
 
     // ---- Save checkpoint periodically ----
     if ((processedMatchIds.length % CHECKPOINT_INTERVAL === 0) || !success) {
+      checkpointCount++;
+      checkpointPosition = processedMatchIds.length;
+      
       saveCheckpoint(fileName, {
         matchData,
         matchIdList,
         successCount,
         failedMatches,
         processedMatchIds,
+        succeededIncCount,
+        failedIncCount,
+        checkpointCount,
+        checkpointPosition,
         lastIndex: i,
         totalMatches: matchIdList.length,
         processedCount: processedMatchIds.length,
         timestamp: Date.now()
       });
+      
+      // Update dashboard with new checkpoint info
+      dashboardStats.checkpointCount = checkpointCount;
+      dashboardStats.checkpointPosition = checkpointPosition;
     }
 
     // ---- Save data file periodically ----
@@ -204,6 +238,7 @@ const sleep = ms => new Promise(res => setTimeout(res, ms));
 
   console.info('\n✅ Data collection completed!');
   console.info(`Successfully scraped: ${successCount}/${matchIdList.length} matches`);
+  console.info(`Incidents: ✅ ${succeededIncCount} | ❌ ${failedIncCount}`);
   if (failedMatches.length) {
     console.warn(`⚠️ Failed matches (${failedMatches.length}): ${failedMatches.join(', ')}`);
   }
