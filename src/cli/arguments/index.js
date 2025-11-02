@@ -5,15 +5,24 @@ export const parseArguments = () => {
   const options = {
     country: null,
     league: null,
-    headless: "shell",
     fileType: null,
+    concurrency: 10,
+    saveInterval: 10,
+    headless: true,
   };
 
   args.forEach((arg) => {
     if (arg.startsWith("country=")) options.country = arg.split("=")[1];
     if (arg.startsWith("league=")) options.league = arg.split("=")[1];
     if (arg.startsWith("fileType=")) options.fileType = arg.split("=")[1];
-    if (arg === "no-headless") options.headless = false;
+    if (arg.startsWith("concurrency="))
+      options.concurrency = Number(arg.split("=")[1]);
+    if (arg.startsWith("saveInterval="))
+      options.saveInterval = Number(arg.split("=")[1]);
+    if (arg.startsWith("headless="))
+      options.headless = arg.split("=")[1] !== "false";
+    if (arg === "--no-headless") options.headless = false;
+    if (arg === "--headless") options.headless = true;
   });
 
   if (options.fileType) {

@@ -5,11 +5,11 @@ import {
   waitForSelectorSafe,
 } from "../../index.js";
 
-export const getListOfCountries = async (browser) => {
-  const page = await openPageAndNavigate(browser, BASE_URL);
+export const getListOfCountries = async (context) => {
+  const page = await openPageAndNavigate(context, BASE_URL);
 
   await waitAndClick(page, "#category-left-menu > div > span");
-  await waitForSelectorSafe(page, "#category-left-menu > div > div > a");
+  await waitForSelectorSafe(page, ["#category-left-menu > div > div > a"]);
 
   const listOfCountries = await page.evaluate(() => {
     return Array.from(

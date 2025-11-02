@@ -4,9 +4,9 @@ import { getListOfLeagues } from "../../../scraper/services/leagues/index.js";
 
 import { start, stop } from "../../loader/index.js";
 
-export const selectLeague = async (browser, countryId) => {
+export const selectLeague = async (context, countryId) => {
   start();
-  const leagues = await getListOfLeagues(browser, countryId);
+  const leagues = await getListOfLeagues(context, countryId);
   stop();
   const options = leagues.map((element) => element.name);
 

@@ -1,152 +1,135 @@
 <h1 align="center">
-  <img src=".github/Logo.svg" alt="logo" width=150px>
+  <img src=".github/Logo.svg" alt="FlashscoreScraping logo" width="150px" />
 </h1>
 
-Flashscore is a popular website providing live scores, statistics, and news across various sports. However, it lacks an
-official API for developers to access its data. This is where FlashscoreScraping comes in.
+<p align="center">
+  <b>Scrape match results, statistics, and league data from Flashscore</b>
+</p>
 
-This project serves users seeking reliable sports results data. Sports enthusiasts can use the scraper data to
-to track their favorite teams, analyze past results, and predict future outcomes. Additionally, researchers,
-students, and educators can utilize the data for academic purposes.
+<p align="center">
+  <img src="https://img.shields.io/badge/node-%3E=18.0.0-green?style=flat-square" />
+  <img src="https://img.shields.io/badge/scraper-playwright-blue?style=flat-square" />
+  <img src="https://img.shields.io/badge/output-JSON%20%7C%20CSV-orange?style=flat-square" />
+</p>
 
-<img src=".github/FlashscoreScraping.gif" alt="logo" width=600px>
+<p align="center">
+  <img src=".github/FlashscoreScraping.gif" alt="Demo" width="600px" />
+</p>
+
+## About the Project
+
+[Flashscore](https://flashscore.com) is one of the most popular platforms for real-time sports results, statistics, and standings, but it has **no official API**.
+
+**FlashscoreScraping** bridges this gap by extracting structured match data directly from the site, enabling use in:
+
+- 🔎 Tracking favorite teams and leagues
+- 📊 Building analytics dashboards
+- 🧠 Research & academic datasets
+- 🤖 Bots, automations, ML training, data pipelines
 
 ## Getting Started
 
-To get started with FlashscoreScraping, follow these steps:
+```bash
+git clone https://github.com/gustavofariaa/FlashscoreScraping.git
+cd FlashscoreScraping
+npm install
+npx playwright install-deps chromium
+npm run start
+```
 
-1. Clone the project:
+## Command-Line Parameters
 
-   ```bash
-   git clone https://github.com/gustavofariaa/FlashscoreScraping.git
-   ```
+| Parameter      | Default |       Required       | Description                                                                        |
+| :------------- | :-----: | :------------------: | :--------------------------------------------------------------------------------- |
+| `country`      |    -    | ✅ if using `league` | Country to scrape (e.g. `brazil`)                                                  |
+| `league`       |    -    |          ❌          | Specific league to scrape (e.g. `serie-a`)                                         |
+| `fileType`     | `json`  |          ❌          | Output format: `json`, `json-array` or `csv`                                       |
+| `concurrency`  |  `10`   |          ❌          | Number of matches scraped in parallel. Higher = faster, but heavier on CPU/network |
+| `saveInterval` |  `10`   |          ❌          | Number of matches processed before data is saved to disk                           |
+| `headless`     | `true`  |          ❌          | Show browser UI (`false`) or run hidden (`true`)                                   |
 
-1. Navigate to the project directory:
+### Examples
 
-   ```bash
-   cd FlashscoreScraping
-   ```
+Scrape Brazilian Serie A 2023 into JSON:
 
-1. Install dependencies:
+```bash
+npm run start country=brazil league=serie-a-2023 fileType=json
+```
 
-   ```bash
-   npm install
-   ```
+Scrape Premier League 22/23 with visible browser and export CSV:
 
-1. Run the scraper:
+```bash
+npm run start country=england league=premier-league-2022-2023 headless=false fileType=csv
+```
 
-   Once everything is installed, you can run the scraper using the following command:
+## Data Structure
 
-   ```bash
-   npm run start
-   ```
-
-## Available Command-Line Parameters
-
-The scraper allows you to specify the country, league, output file type (JSON or CSV), and whether to run in headless mode.
-
-| Parameter     | Default Value | Description                                              |
-| :------------ | :-----------: | :------------------------------------------------------- |
-| `country`     |       -       | The country for which results are to be crawled.         |
-| `league`      |       -       | The league for which results are to be crawled.          |
-| `fileType`    |    `json`     | The format of the output file (`JSON` or `CSV`).         |
-| `no-headless` |    `false`    | If set, the scraper will run with a graphical interface. |
-
-### Example commands
-
-- Scrape Brazilian Serie A 2023 results and save as a `JSON` file:
-
-  ```bash
-  npm run start country=brazil league=serie-a-2023 fileType=json
-  ```
-
-- Scrape English Premier League 2022-2023 results with a graphical interface and save as a `CSV` file:
-
-  ```bash
-  npm run start country=england league=premier-league-2022-2023 no-headless fileType=csv
-  ```
-
-## Data Example
-
-When scraping match data, you’ll receive detailed information about each match, such as the match date, teams, scores, and statistics. Below is an example of what the data might look like in `JSON` format:
-
-### JSON Format
+Each match result includes:
 
 ```json
 {
-  "Gd4glas0": {
-    "stage": "MINEIRO - ROUND 7",
-    "date": "09.02.2025 16:00",
-    "status": "FINISHED",
+  "IHCq3ARL": {
+    "stage": "FINAL",
+    "date": "20.02.2022 16:00",
+    "status": "AFTER PENALTIES",
     "home": {
-      "name": "Cruzeiro",
-      "image": "https://static.flashscore.com/res/image/data/lCWrxmg5-SjJmyx86.png"
-    },
-    "away": {
       "name": "Atletico-MG",
       "image": "https://static.flashscore.com/res/image/data/WbSJHDh5-pCk2vaSD.png"
     },
+    "away": {
+      "name": "Flamengo RJ",
+      "image": "https://static.flashscore.com/res/image/data/ADvIaiZA-2R2JjDQC.png"
+    },
     "result": {
-      "home": "0",
-      "away": "2"
+      "home": "3",
+      "away": "2",
+      "regulationTime": "2-2",
+      "penalties": "8-7"
     },
     "information": [
       {
         "category": "Referee",
-        "value": "Fernandes de Lima F. (Bra)"
+        "value": "Daronco A. (Bra)"
+      },
+      {
+        "category": "Venue",
+        "value": "Arena Pantanal (Cuiabá)"
+      },
+      {
+        "category": "Capacity",
+        "value": "44 000"
       }
     ],
     "statistics": [
       {
         "category": "Ball Possession",
-        "homeValue": "42%",
-        "awayValue": "58%"
+        "homeValue": "57%",
+        "awayValue": "43%"
       }
+      // statistics are dynamic and may vary per match
     ]
   }
 }
 ```
 
-## Data Breakdown
+### Field Reference
 
-1. Match Date
+| Field           | Type     | Description                                            |
+| :-------------- | :------- | :----------------------------------------------------- |
+| `matchId`       | `string` | Unique identifier for the match                        |
+| `stage`         | `string` | Competition phase or round (e.g., `QUARTER-FINALS`)    |
+| `status`        | `string` | Current or final state of the match (e.g., `FINISHED`) |
+| `date`          | `string` | Full match date & time (dd.mm.yyyy hh:mm)              |
+| `home` / `away` | `object` | Team data (name + logo URL)                            |
+| `result`        | `object` | Match score data (may be empty if not available)       |
+| `information`   | `array`  | Extra match info (referee, stadium, etc.)              |
+| `statistics`    | `array`  | Variable-length list of stats (depends on match)       |
 
-   - `stage`: The name of the competition and round (e.g., "MINEIRO - ROUND 7").
-   - `date`: The date and time the match took place.
-   - `status`: The match status (e.g., FINISHED).
+## Issues & Contribution
 
-1. Team
+Found a bug? Want to suggest a feature? [Open an issue](https://github.com/gustavofariaa/FlashscoreScraping/issues)
 
-   An object representing the team, containing:
+## Support
 
-   - `name`: The team's name.
-   - `image`: The URL to the team's logo.
+If this project helped you, consider leaving a star. It motivates development and helps more people find the repo.
 
-1. Result
-
-   The match result, including:
-
-   - `home`: The home team's score.
-   - `away`: The away team's score.
-   - `regulationTime`: The result of the match in regular time, if applicable (null if not).
-   - `penalties`: The penalty score, if applicable (null if not).
-
-1. Statistics
-
-   An array of match statistics, each with the following structure:
-
-   - `category`: The name of the statistic (e.g., "Expected Goals (xG)").
-   - `homeValue`: The statistic value for the home team.
-   - `awayValue`: The statistic value for the away team.
-
-1. Information
-
-   An array of additional match information, including categories such as referee, stadium, and more.
-
-   - `category`: The category of information (e.g., "Referee").
-   - `value`: The corresponding value for that category (e.g., "Fernandes de Lima F. (Bra)").
-
----
-
-If you encounter any issues or have suggestions for improvements, feel free
-to [open an issue](https://github.com/gustavofariaa/FlashscoreScraping/issues).

@@ -4,9 +4,9 @@ import { getListOfSeasons } from "../../../scraper/services/seasons/index.js";
 
 import { start, stop } from "../../loader/index.js";
 
-export const selectSeason = async (browser, leagueUrl) => {
+export const selectSeason = async (context, leagueUrl) => {
   start();
-  const seasons = await getListOfSeasons(browser, leagueUrl);
+  const seasons = await getListOfSeasons(context, leagueUrl);
   stop();
   const options = seasons.map((season) => season.name);
 
