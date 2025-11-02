@@ -1,56 +1,107 @@
-import puppeteer from 'puppeteer';
+import { chromium } from "playwright";
+import pLimit from "p-limit";
+import chalk from "chalk";
 
-import { BASE_URL, OUTPUT_PATH } from './constants/index.js';
+import { OUTPUT_PATH } from "./constants/index.js";
+import { parseArguments } from "./cli/arguments/index.js";
+import { promptUserOptions } from "./cli/prompts/index.js";
+import { start, stop } from "./cli/loader/index.js";
+import { initializeProgressbar } from "./cli/progressbar/index.js";
 
-import { parseArguments } from './cli/arguments/index.js';
+import {
+  getMatchLinks,
+  getMatchData,
+} from "./scraper/services/matches/index.js";
 
-import { selectFileType } from './cli/prompts/fileType/index.js';
-import { selectCountry } from './cli/prompts/countries/index.js';
-import { selectLeague } from './cli/prompts/leagues/index.js';
-import { selectSeason } from './cli/prompts/season/index.js';
+import { writeDataToFile } from "./files/handle/index.js";
 
-import { start, stop } from './cli/loader/index.js';
-import { initializeProgressbar } from './cli/progressbar/index.js';
-
-import { getMatchIdList, getMatchData } from './scraper/services/matches/index.js';
-
-import { handleFileType } from './files/handle/index.js';
+const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
+const withRetry = async (fn, retries = 3) => {
+  try {
+    return await fn();
+  } catch (err) {
+    if (retries === 0) throw err;
+    const delay = (4 - retries) * 500;
+    console.warn(`⚠️ Retry in ${delay}ms...`);
+    await sleep(delay);
+    return withRetry(fn, retries - 1);
+  }
+};
 
 (async () => {
-  const options = parseArguments();
-  const browser = await puppeteer.launch({ headless: options.headless });
+  let browser;
+  let context;
 
-  const fileType = options.fileType || (await selectFileType());
-  const country = options.country ? { name: options.country } : await selectCountry(browser);
-  const league = options.league ? { name: options.league } : await selectLeague(browser, country?.id);
+  try {
+    const cliOptions = parseArguments();
 
-  const season = league?.url ? await selectSeason(browser, league?.url) : { name: league?.name, url: `${BASE_URL}/football/${country?.name}/${league?.name}` };
+    browser = await chromium.launch({ headless: cliOptions.headless });
+    context = await browser.newContext();
 
-  const fileName = `${country?.name}_${season?.name}`
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_|_$/g, '');
+    const { fileName, season, fileType } = await promptUserOptions(
+      context,
+      cliOptions
+    );
 
-  console.info(`\n📝 Data collection has started!`);
-  console.info(`The league data will be saved to: ${OUTPUT_PATH}/${fileName}.${fileType}`);
+    start();
 
-  start();
-  const matchIdList = await getMatchIdList(browser, season?.url);
-  stop();
+    const matchLinksResults = await getMatchLinks(
+      context,
+      season?.url,
+      "results"
+    );
+    const matchLinksFixtures = await getMatchLinks(
+      context,
+      season?.url,
+      "fixtures"
+    );
+    const matchLinks = [...matchLinksFixtures, ...matchLinksResults];
 
-  const progressbar = initializeProgressbar(matchIdList.length);
+    if (matchLinks.length === 0) {
+      throw Error(
+        `❌ No matches found on the results page\n` +
+          `Please verify that the league name provided is correct`
+      );
+    }
 
-  const matchData = {};
-  for (const matchId of matchIdList) {
-    matchData[matchId] = await getMatchData(browser, matchId);
-    handleFileType(matchData, fileType, fileName);
-    progressbar.increment();
+    stop();
+
+    const progressbar = initializeProgressbar(matchLinks.length);
+    const limit = pLimit(cliOptions.concurrency);
+
+    const matchData = {};
+    let processedCount = 0;
+
+    const tasks = matchLinks.map((matchLink) =>
+      limit(async () => {
+        const data = await withRetry(() => getMatchData(context, matchLink));
+        matchData[matchLink.id] = data;
+
+        processedCount += 1;
+        if (processedCount % cliOptions.saveInterval === 0) {
+          writeDataToFile(matchData, fileName, fileType);
+        }
+
+        progressbar.increment();
+      })
+    );
+
+    await Promise.all(tasks);
+
+    progressbar.stop();
+    writeDataToFile(matchData, fileName, fileType);
+
+    console.info("\n✅ Data collection and file writing completed!");
+    console.info(
+      `📁 File saved to: ${chalk.cyan(
+        `${OUTPUT_PATH}/${fileName}${fileType.extension}`
+      )}\n`
+    );
+  } catch (error) {
+    stop();
+    if (error.message) console.error(`\n${error.message}\n`);
+  } finally {
+    await context?.close();
+    await browser?.close();
   }
-
-  progressbar.stop();
-
-  console.info('\n✅ Data collection and file writing completed!');
-  console.info(`The data has been successfully saved to: ${OUTPUT_PATH}/${fileName}.${options.fileType}\n`);
-
-  await browser.close();
 })();

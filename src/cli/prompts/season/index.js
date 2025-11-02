@@ -1,27 +1,27 @@
-import inquirer from 'inquirer';
+import inquirer from "inquirer";
 
-import { getListOfSeasons } from '../../../scraper/services/seasons/index.js';
+import { getListOfSeasons } from "../../../scraper/services/seasons/index.js";
 
-import { start, stop } from '../../loader/index.js';
+import { start, stop } from "../../loader/index.js";
 
-export const selectSeason = async (browser, leagueUrl) => {
+export const selectSeason = async (context, leagueUrl) => {
   start();
-  const seasons = await getListOfSeasons(browser, leagueUrl);
+  const seasons = await getListOfSeasons(context, leagueUrl);
   stop();
   const options = seasons.map((season) => season.name);
 
   const { choice } = await inquirer.prompt([
     {
-      type: 'list',
-      name: 'choice',
-      message: 'Select a league season:',
-      choices: [...options, 'Cancel', new inquirer.Separator()],
+      type: "list",
+      name: "choice",
+      message: "Select a league season:",
+      choices: [...options, "Cancel", new inquirer.Separator()],
     },
   ]);
 
-  if (choice === 'Cancel') {
-    console.log('No option selected. Exiting...');
-    process.exit(1);
+  if (choice === "Cancel") {
+    console.info("\nNo option selected. Exiting...\n");
+    throw Error;
   }
 
   return seasons.find((season) => season.name === choice);

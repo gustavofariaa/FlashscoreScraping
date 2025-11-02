@@ -1,14 +1,24 @@
-import fs from 'fs';
-import path from 'path';
+import fs from "fs";
+import path from "path";
 
-export const writeJsonToFile = (data, outputPath, fileName) => {
-  const filePath = path.join(outputPath, `${fileName}.json`);
-  const fileContent = JSON.stringify(data, null, 2);
+import { OUTPUT_PATH } from "../../constants/index.js";
+
+export const writeJsonToFile = (data, fileName, asArray) => {
+  const preparedData = asArray ? toArray(data) : data;
+
+  const filePath = path.join(OUTPUT_PATH, fileName);
+  const fileContent = JSON.stringify(preparedData, null, 2);
 
   try {
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
-    fs.writeFileSync(filePath, fileContent);
+    fs.writeFileSync(filePath, fileContent, "utf-8");
   } catch (error) {
-    console.error(`Error creating directories or writing to JSON file:`, error);
+    throw Error(`❌ Failed to create directories or write the JSON file`);
   }
 };
+
+const toArray = (data) =>
+  Object.entries(data).map(([matchId, matchData]) => ({
+    matchId,
+    ...structuredClone(matchData),
+  }));
