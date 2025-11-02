@@ -1,4 +1,5 @@
 import { openPageAndNavigate, waitForSelectorSafe } from "../../index.js";
+import { BASE_URL_MOBI } from "../../../constants/index.js";
 
 export const getMatchLinks = async (context, leagueSeasonUrl, type) => {
   const page = await openPageAndNavigate(context, `${leagueSeasonUrl}/${type}`);
@@ -50,7 +51,6 @@ export const getMatchLinks = async (context, leagueSeasonUrl, type) => {
 
   await page.close();
 
-  console.info(`✅ Found ${matchIdList.length} matches for ${type}`);
   return matchIdList;
 };
 
@@ -64,29 +64,10 @@ export const getMatchData = async (context, { id: matchId, url }) => {
 
   const matchData = await extractMatchData(page);
   const information = await extractMatchInformation(page);
-
-  const statsLink = buildStatsUrl(url);
-  await page.goto(statsLink, { waitUntil: "domcontentloaded" });
-
-  await waitForSelectorSafe(page, [
-    "div[data-testid='wcl-statistics']",
-    "div[data-testid='wcl-statistics-value']",
-  ]);
-
-  const statistics = await extractMatchStatistics(page);
+  const statistics = await extractMatchStatisticsMobi(matchId);
 
   await page.close();
   return { matchId, ...matchData, information, statistics };
-};
-
-const buildStatsUrl = (matchUrl) => {
-  if (!matchUrl) return null;
-
-  const url = new URL(matchUrl);
-  const base = url.origin + url.pathname.replace(/\/$/, "");
-  const mid = url.searchParams.get("mid");
-
-  return `${base}/summary/stats/0/?mid=${mid}`;
 };
 
 const extractMatchData = async (page) => {
@@ -191,24 +172,46 @@ const extractMatchInformation = async (page) => {
   });
 };
 
-const extractMatchStatistics = async (page) => {
-  return await page.evaluate(async () => {
-    return Array.from(
-      document.querySelectorAll("div[data-testid='wcl-statistics']")
-    ).map((element) => ({
-      category: element
-        .querySelector("div[data-testid='wcl-statistics-category']")
-        ?.innerText.trim(),
-      homeValue: Array.from(
-        element.querySelectorAll(
-          "div[data-testid='wcl-statistics-value'] > strong"
-        )
-      )?.[0]?.innerText.trim(),
-      awayValue: Array.from(
-        element.querySelectorAll(
-          "div[data-testid='wcl-statistics-value'] > strong"
-        )
-      )?.[1]?.innerText.trim(),
-    }));
+export const extractMatchStatisticsMobi = async (matchId) => {
+  const response = await fetch(`${BASE_URL_MOBI}/match/${matchId}/?t=stats`, {
+    headers: {
+      "User-Agent": "Mozilla/5.0 (Linux; Android 13)",
+      Accept: "text/html,application/xhtml+xml",
+    },
   });
+
+  const html = await response.text();
+
+  return html
+    .split('data-testid="wcl-statistics"')
+    .slice(1)
+    .map((section) => {
+      const categoryMatch = section.match(
+        /wcl-statistics-category[^>]*>(.*?)<\/div>/
+      );
+      if (!categoryMatch) return null;
+
+      const categoryName = categoryMatch[1].replace(/<[^>]+>/g, "").trim();
+
+      const valueMatches = [
+        ...section.matchAll(
+          /wcl-statistics-value[^>]*>[\s\S]*?<strong[^>]*>(.*?)<\/strong>/g
+        ),
+      ].map((match) => match[1].trim());
+
+      if (valueMatches.length < 2) return null;
+
+      return {
+        category: categoryName,
+        homeValue: valueMatches[0],
+        awayValue: valueMatches[1],
+      };
+    })
+    .filter(Boolean)
+    .reduce((uniqueStats, stat) => {
+      if (!uniqueStats.some((s) => s.category === stat.category)) {
+        uniqueStats.push(stat);
+      }
+      return uniqueStats;
+    }, []);
 };

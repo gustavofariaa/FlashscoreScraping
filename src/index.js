@@ -1,5 +1,5 @@
 import { chromium } from "playwright";
-import pLimit from "p-limit";
+import { pLimit } from "./utils/index.js";
 import chalk from "chalk";
 
 import { OUTPUT_PATH } from "./constants/index.js";
@@ -14,19 +14,6 @@ import {
 } from "./scraper/services/matches/index.js";
 
 import { writeDataToFile } from "./files/handle/index.js";
-
-const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
-const withRetry = async (fn, retries = 3) => {
-  try {
-    return await fn();
-  } catch (err) {
-    if (retries === 0) throw err;
-    const delay = (4 - retries) * 500;
-    console.warn(`⚠️ Retry in ${delay}ms...`);
-    await sleep(delay);
-    return withRetry(fn, retries - 1);
-  }
-};
 
 (async () => {
   let browser;
@@ -44,7 +31,6 @@ const withRetry = async (fn, retries = 3) => {
     );
 
     start();
-
     const matchLinksResults = await getMatchLinks(
       context,
       season?.url,
@@ -63,7 +49,6 @@ const withRetry = async (fn, retries = 3) => {
           `Please verify that the league name provided is correct`
       );
     }
-
     stop();
 
     const progressbar = initializeProgressbar(matchLinks.length);
@@ -74,7 +59,7 @@ const withRetry = async (fn, retries = 3) => {
 
     const tasks = matchLinks.map((matchLink) =>
       limit(async () => {
-        const data = await withRetry(() => getMatchData(context, matchLink));
+        const data = await getMatchData(context, matchLink);
         matchData[matchLink.id] = data;
 
         processedCount += 1;

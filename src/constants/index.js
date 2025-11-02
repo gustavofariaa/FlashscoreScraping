@@ -1,4 +1,5 @@
 export const BASE_URL = "https://www.flashscore.com";
+export const BASE_URL_MOBI = "https://www.flashscore.mobi";
 export const OUTPUT_PATH = "./src/data";
 export const TIMEOUT = 2500;
 export const FileTypes = Object.freeze({
