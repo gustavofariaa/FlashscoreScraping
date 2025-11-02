@@ -16,7 +16,7 @@
   <img src=".github/FlashscoreScraping.gif" alt="Demo" width="600px" />
 </p>
 
-## 📌 About the Project
+## About the Project
 
 [Flashscore](https://flashscore.com) is one of the most popular platforms for real-time sports results, statistics, and standings, but it has **no official API**.
 
@@ -27,7 +27,7 @@
 - 🧠 Research & academic datasets
 - 🤖 Bots, automations, ML training, data pipelines
 
-## 🚀 Getting Started
+## Getting Started
 
 ```bash
 git clone https://github.com/gustavofariaa/FlashscoreScraping.git
@@ -132,3 +132,4 @@ Found a bug? Want to suggest a feature? [Open an issue](https://github.com/gusta
 ## Support
 
 If this project helped you, consider leaving a star. It motivates development and helps more people find the repo.
+
