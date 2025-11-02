@@ -1,24 +1,40 @@
-import {
-  openPageAndNavigate,
-  waitAndClick,
-  waitForSelectorSafe,
-} from "../../index.js";
+import { openPageAndNavigate, waitForSelectorSafe } from "../../index.js";
 
-export const getMatchLinks = async (browser, leagueSeasonUrl) => {
-  const page = await openPageAndNavigate(browser, `${leagueSeasonUrl}/results`);
+export const getMatchLinks = async (context, leagueSeasonUrl, type) => {
+  const page = await openPageAndNavigate(context, `${leagueSeasonUrl}/${type}`);
+
+  const LOAD_MORE_SELECTOR = '[data-testid="wcl-buttonLink"]';
+  const MATCH_SELECTOR =
+    ".event__match.event__match--static.event__match--twoLine";
+  const CLICK_DELAY = 600;
+  const MAX_EMPTY_CYCLES = 4;
+
+  let emptyCycles = 0;
 
   while (true) {
+    const countBefore = await page.$$eval(MATCH_SELECTOR, (els) => els.length);
+
+    const loadMoreBtn = await page.$(LOAD_MORE_SELECTOR);
+    if (!loadMoreBtn) break;
+
     try {
-      await waitAndClick(page, "a.event__more.event__more--static");
-    } catch (error) {
+      await loadMoreBtn.click();
+      await page.waitForTimeout(CLICK_DELAY);
+    } catch {
       break;
+    }
+
+    const countAfter = await page.$$eval(MATCH_SELECTOR, (els) => els.length);
+
+    if (countAfter === countBefore) {
+      emptyCycles++;
+      if (emptyCycles >= MAX_EMPTY_CYCLES) break;
+    } else {
+      emptyCycles = 0;
     }
   }
 
-  await waitForSelectorSafe(
-    page,
-    ".event__match.event__match--static.event__match--twoLine"
-  );
+  await waitForSelectorSafe(page, [MATCH_SELECTOR]);
 
   const matchIdList = await page.evaluate(() => {
     return Array.from(
@@ -28,31 +44,23 @@ export const getMatchLinks = async (browser, leagueSeasonUrl) => {
     ).map((element) => {
       const id = element?.id?.replace("g_1_", "");
       const url = element.querySelector("a.eventRowLink")?.href ?? null;
-
       return { id, url };
     });
   });
 
   await page.close();
 
-  if (matchIdList.length === 0) {
-    throw Error(
-      `❌ No matches found on the results page\n` +
-        `Please verify that the league name provided is correct`
-    );
-  }
-
+  console.info(`✅ Found ${matchIdList.length} matches for ${type}`);
   return matchIdList;
 };
 
-export const getMatchData = async (browser, { url }) => {
-  const page = await openPageAndNavigate(browser, url);
+export const getMatchData = async (context, { id: matchId, url }) => {
+  const page = await openPageAndNavigate(context, url);
 
-  await waitForSelectorSafe(page, ".duelParticipant__startTime");
-  await waitForSelectorSafe(
-    page,
-    "div[data-testid='wcl-summaryMatchInformation'] > div'"
-  );
+  await waitForSelectorSafe(page, [
+    ".duelParticipant__startTime",
+    "div[data-testid='wcl-summaryMatchInformation'] > div'",
+  ]);
 
   const matchData = await extractMatchData(page);
   const information = await extractMatchInformation(page);
@@ -60,11 +68,15 @@ export const getMatchData = async (browser, { url }) => {
   const statsLink = buildStatsUrl(url);
   await page.goto(statsLink, { waitUntil: "domcontentloaded" });
 
-  await waitForSelectorSafe(page, "div[data-testid='wcl-statistics']");
+  await waitForSelectorSafe(page, [
+    "div[data-testid='wcl-statistics']",
+    "div[data-testid='wcl-statistics-value']",
+  ]);
+
   const statistics = await extractMatchStatistics(page);
 
   await page.close();
-  return { ...matchData, information, statistics };
+  return { matchId, ...matchData, information, statistics };
 };
 
 const buildStatsUrl = (matchUrl) => {
@@ -78,17 +90,34 @@ const buildStatsUrl = (matchUrl) => {
 };
 
 const extractMatchData = async (page) => {
-  return await page.evaluate(async () => {
+  await waitForSelectorSafe(page, [
+    "span[data-testid='wcl-scores-overline-03']",
+    ".duelParticipant__startTime",
+    ".fixedHeaderDuel__detailStatus",
+    ".tournamentHeader__country > a",
+    ".detailScore__wrapper span:not(.detailScore__divider)",
+    ".duelParticipant__home .participant__image",
+    ".duelParticipant__away .participant__image",
+    ".duelParticipant__home .participant__participantName.participant__overflow",
+    ".duelParticipant__away .participant__participantName.participant__overflow",
+  ]);
+
+  return await page.evaluate(() => {
     return {
-      stage: document
-        .querySelector(".tournamentHeader__country > a")
-        ?.innerText.trim(),
+      stage: Array.from(
+        document.querySelectorAll("span[data-testid='wcl-scores-overline-03']")
+      )?.[2]
+        ?.innerText.trim()
+        ?.split(" - ")
+        .pop()
+        .trim(),
       date: document
         .querySelector(".duelParticipant__startTime")
         ?.innerText.trim(),
-      status: document
-        .querySelector(".fixedHeaderDuel__detailStatus")
-        ?.innerText.trim(),
+      status:
+        document
+          .querySelector(".fixedHeaderDuel__detailStatus")
+          ?.innerText.trim() ?? "NOT STARTED",
       home: {
         name: document
           .querySelector(

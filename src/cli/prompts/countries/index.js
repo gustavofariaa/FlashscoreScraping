@@ -5,9 +5,9 @@ import { getListOfCountries } from "../../../scraper/services/countries/index.js
 
 import { start, stop } from "../../loader/index.js";
 
-export const selectCountry = async (browser, inputCountry) => {
+export const selectCountry = async (context, inputCountry) => {
   start();
-  const countries = await getListOfCountries(browser);
+  const countries = await getListOfCountries(context);
   stop();
 
   const selected = findCountry(countries, inputCountry);

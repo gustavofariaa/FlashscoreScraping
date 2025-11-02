@@ -5,12 +5,12 @@ import {
   waitForSelectorSafe,
 } from "../../index.js";
 
-export const getListOfLeagues = async (browser, countryId) => {
-  const page = await openPageAndNavigate(browser, BASE_URL);
+export const getListOfLeagues = async (context, countryId) => {
+  const page = await openPageAndNavigate(context, BASE_URL);
 
   await waitAndClick(page, "#category-left-menu > div > span");
   await waitAndClick(page, `#${countryId}`);
-  await waitForSelectorSafe(page, `#${countryId} ~ span > a`, TIMEOUT);
+  await waitForSelectorSafe(page, [`#${countryId} ~ span > a`], TIMEOUT);
 
   const listOfLeagues = await page.evaluate((countryId) => {
     return Array.from(

@@ -7,10 +7,10 @@ import { selectCountry } from "./countries/index.js";
 import { selectLeague } from "./leagues/index.js";
 import { selectSeason } from "./season/index.js";
 
-export const promptUserOptions = async (browser, cliOptions) => {
+export const promptUserOptions = async (context, cliOptions) => {
   const fileType = await selectFileType(cliOptions?.fileType);
-  const country = await selectCountry(browser, cliOptions?.country);
-  const season = await resolveSeason(browser, cliOptions, country);
+  const country = await selectCountry(context, cliOptions?.country);
+  const season = await resolveSeason(context, cliOptions, country);
 
   const fileName = generateFileName(country?.name, season?.name);
 
@@ -24,10 +24,10 @@ export const promptUserOptions = async (browser, cliOptions) => {
   return { fileName, season, fileType };
 };
 
-const resolveSeason = async (browser, cliOptions, country) => {
+const resolveSeason = async (context, cliOptions, country) => {
   if (!cliOptions?.league) {
-    const league = await selectLeague(browser, country?.id);
-    return await selectSeason(browser, league?.url);
+    const league = await selectLeague(context, country?.id);
+    return await selectSeason(context, league?.url);
   }
 
   const leagueName = capitalizeWords(cliOptions.league);

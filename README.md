@@ -3,7 +3,7 @@
 </h1>
 
 <p align="center">
-  <b>Scrape match results, statistics, and league data from Flashscore — no official API required.</b>
+  <b>Scrape match results, statistics, and league data from Flashscore</b>
 </p>
 
 <p align="center">
@@ -39,12 +39,14 @@ npm run start
 
 ## Command-Line Parameters
 
-| Parameter  | Default |       Required       | Description                                      |
-| :--------- | :-----: | :------------------: | :----------------------------------------------- |
-| `country`  |    -    | ✅ if using `league` | Country to scrape (e.g. `brazil`)                |
-| `league`   |    -    |          ❌          | Specific league to scrape                        |
-| `fileType` | `json`  |          ❌          | Output format: `json` or `csv`                   |
-| `headless` | `true`  |          ❌          | Show browser UI (`false`) or run hidden (`true`) |
+| Parameter      | Default |       Required       | Description                                                                        |
+| :------------- | :-----: | :------------------: | :--------------------------------------------------------------------------------- |
+| `country`      |    -    | ✅ if using `league` | Country to scrape (e.g. `brazil`)                                                  |
+| `league`       |    -    |          ❌          | Specific league to scrape (e.g. `serie-a`)                                         |
+| `fileType`     | `json`  |          ❌          | Output format: `json`, `json-array` or `csv`                                       |
+| `concurrency`  |  `10`   |          ❌          | Number of matches scraped in parallel. Higher = faster, but heavier on CPU/network |
+| `saveInterval` |  `10`   |          ❌          | Number of matches processed before data is saved to disk                           |
+| `headless`     | `true`  |          ❌          | Show browser UI (`false`) or run hidden (`true`)                                   |
 
 ### Examples
 
@@ -67,7 +69,9 @@ Each match result includes:
 ```json
 {
   "IHCq3ARL": {
+    "stage": "FINAL",
     "date": "20.02.2022 16:00",
+    "status": "AFTER PENALTIES",
     "home": {
       "name": "Atletico-MG",
       "image": "https://static.flashscore.com/res/image/data/WbSJHDh5-pCk2vaSD.png"
@@ -76,8 +80,26 @@ Each match result includes:
       "name": "Flamengo RJ",
       "image": "https://static.flashscore.com/res/image/data/ADvIaiZA-2R2JjDQC.png"
     },
-    "result": {},
-    "information": [],
+    "result": {
+      "home": "3",
+      "away": "2",
+      "regulationTime": "2-2",
+      "penalties": "8-7"
+    },
+    "information": [
+      {
+        "category": "Referee",
+        "value": "Daronco A. (Bra)"
+      },
+      {
+        "category": "Venue",
+        "value": "Arena Pantanal (Cuiabá)"
+      },
+      {
+        "category": "Capacity",
+        "value": "44 000"
+      }
+    ],
     "statistics": [
       {
         "category": "Ball Possession",
@@ -92,13 +114,16 @@ Each match result includes:
 
 ### Field Reference
 
-| Field           | Type     | Description                                      |
-| :-------------- | :------- | :----------------------------------------------- |
-| `date`          | `string` | Full match date & time (dd.mm.yyyy hh:mm)        |
-| `home` / `away` | `object` | Team data (name + logo URL)                      |
-| `result`        | `object` | Match score data (may be empty if not available) |
-| `information`   | `array`  | Extra match info (referee, stadium, etc.)        |
-| `statistics`    | `array`  | Variable-length list of stats (depends on match) |
+| Field           | Type     | Description                                            |
+| :-------------- | :------- | :----------------------------------------------------- |
+| `matchId`       | `string` | Unique identifier for the match                        |
+| `stage`         | `string` | Competition phase or round (e.g., `QUARTER-FINALS`)    |
+| `status`        | `string` | Current or final state of the match (e.g., `FINISHED`) |
+| `date`          | `string` | Full match date & time (dd.mm.yyyy hh:mm)              |
+| `home` / `away` | `object` | Team data (name + logo URL)                            |
+| `result`        | `object` | Match score data (may be empty if not available)       |
+| `information`   | `array`  | Extra match info (referee, stadium, etc.)              |
+| `statistics`    | `array`  | Variable-length list of stats (depends on match)       |
 
 ## Issues & Contribution
 
