@@ -1,7 +1,8 @@
 import { TIMEOUT_FAST } from "../constants/index.js";
 
 export const openPageAndNavigate = async (browser, url) => {
-  const page = await browser.newPage();
+  const context = await browser.newContext();
+  const page = await context.newPage();
   await page.goto(url, { waitUntil: "domcontentloaded" });
   return page;
 };

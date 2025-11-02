@@ -1,4 +1,4 @@
-import puppeteer from "puppeteer";
+import { chromium } from "playwright";
 import chalk from "chalk";
 
 import { OUTPUT_PATH } from "./constants/index.js";
@@ -21,7 +21,7 @@ import { writeDataToFile } from "./files/handle/index.js";
 
   try {
     const cliOptions = parseArguments();
-    browser = await puppeteer.launch({ headless: cliOptions.headless });
+    browser = await chromium.launch({ headless: cliOptions.headless });
 
     const { fileName, season, fileType } = await promptUserOptions(
       browser,

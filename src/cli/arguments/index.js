@@ -5,7 +5,7 @@ export const parseArguments = () => {
   const options = {
     country: null,
     league: null,
-    headless: "shell",
+    headless: true,
     fileType: null,
   };
 
@@ -13,7 +13,10 @@ export const parseArguments = () => {
     if (arg.startsWith("country=")) options.country = arg.split("=")[1];
     if (arg.startsWith("league=")) options.league = arg.split("=")[1];
     if (arg.startsWith("fileType=")) options.fileType = arg.split("=")[1];
-    if (arg === "no-headless") options.headless = false;
+    if (arg.startsWith("headless="))
+      options.headless = arg.split("=")[1] !== "false";
+    if (arg === "--no-headless") options.headless = false;
+    if (arg === "--headless") options.headless = true;
   });
 
   if (options.fileType) {

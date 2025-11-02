@@ -1,4 +1,3 @@
-import { BASE_URL } from "../../../constants/index.js";
 import {
   openPageAndNavigate,
   waitAndClick,
@@ -48,8 +47,6 @@ export const getMatchLinks = async (browser, leagueSeasonUrl) => {
 
 export const getMatchData = async (browser, { url }) => {
   const page = await openPageAndNavigate(browser, url);
-
-  console.log(url);
 
   await waitForSelectorSafe(page, ".duelParticipant__startTime");
   await waitForSelectorSafe(
