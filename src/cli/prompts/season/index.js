@@ -1,8 +1,8 @@
-import inquirer from 'inquirer';
+import inquirer from "inquirer";
 
-import { getListOfSeasons } from '../../../scraper/services/seasons/index.js';
+import { getListOfSeasons } from "../../../scraper/services/seasons/index.js";
 
-import { start, stop } from '../../loader/index.js';
+import { start, stop } from "../../loader/index.js";
 
 export const selectSeason = async (browser, leagueUrl) => {
   start();
@@ -12,15 +12,15 @@ export const selectSeason = async (browser, leagueUrl) => {
 
   const { choice } = await inquirer.prompt([
     {
-      type: 'list',
-      name: 'choice',
-      message: 'Select a league season:',
-      choices: [...options, 'Cancel', new inquirer.Separator()],
+      type: "list",
+      name: "choice",
+      message: "Select a league season:",
+      choices: [...options, "Cancel", new inquirer.Separator()],
     },
   ]);
 
-  if (choice === 'Cancel') {
-    console.info('\nNo option selected. Exiting...\n');
+  if (choice === "Cancel") {
+    console.info("\nNo option selected. Exiting...\n");
     throw Error;
   }
 

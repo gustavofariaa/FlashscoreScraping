@@ -1,7 +1,7 @@
-import { FileTypes } from '../../constants/index.js';
+import { FileTypes } from "../../constants/index.js";
 
-import { writeJsonToFile } from '../../files/json/index.js';
-import { writeCsvToFile } from '../../files/csv/index.js';
+import { writeJsonToFile } from "../../files/json/index.js";
+import { writeCsvToFile } from "../../files/csv/index.js";
 
 export const writeDataToFile = (data, fileName, fileType) => {
   const outputFileName = `${fileName}${fileType.extension}`;

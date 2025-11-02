@@ -1,7 +1,7 @@
-import fs from 'fs';
-import path from 'path';
+import fs from "fs";
+import path from "path";
 
-import { OUTPUT_PATH } from '../../constants/index.js';
+import { OUTPUT_PATH } from "../../constants/index.js";
 
 export const writeJsonToFile = (data, fileName, asArray) => {
   const preparedData = asArray ? toArray(data) : data;
@@ -11,7 +11,7 @@ export const writeJsonToFile = (data, fileName, asArray) => {
 
   try {
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
-    fs.writeFileSync(filePath, fileContent, 'utf-8');
+    fs.writeFileSync(filePath, fileContent, "utf-8");
   } catch (error) {
     throw Error(`❌ Failed to create directories or write the JSON file`);
   }

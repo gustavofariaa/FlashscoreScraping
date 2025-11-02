@@ -1,8 +1,8 @@
-import { TIMEOUT_FAST } from '../constants/index.js';
+import { TIMEOUT_FAST } from "../constants/index.js";
 
 export const openPageAndNavigate = async (browser, url) => {
   const page = await browser.newPage();
-  await page.goto(url, { waitUntil: 'domcontentloaded' });
+  await page.goto(url, { waitUntil: "domcontentloaded" });
   return page;
 };
 
@@ -18,7 +18,11 @@ export const waitAndClick = async (page, selector, timeout = TIMEOUT_FAST) => {
   }, selector);
 };
 
-export const waitForSelectorSafe = async (page, selector, timeout = TIMEOUT_FAST) => {
+export const waitForSelectorSafe = async (
+  page,
+  selector,
+  timeout = TIMEOUT_FAST
+) => {
   try {
     await page.waitForSelector(selector, { timeout });
   } catch (error) {}
