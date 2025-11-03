@@ -5,12 +5,14 @@ import { selectFileType } from './cli/prompts/fileType/index.js';
 import { selectCountry } from './cli/prompts/countries/index.js';
 import { selectLeague } from './cli/prompts/leagues/index.js';
 import { selectSeason } from './cli/prompts/season/index.js';
+import { selectPeriod } from './cli/prompts/period/index.js';
 import { start, stop } from './cli/loader/index.js';
 import { getMatchIdList, getMatchData } from './scraper/services/matches/index.js';
 import { handleFileType } from './files/handle/index.js';
 import { BrowserManager } from './utils/browsermanager/index.js';
 import { saveCheckpoint, loadCheckpoint, deleteCheckpoint, hasCheckpoint, shouldResumeCheckpoint } from './utils/checkpoint/index.js';
 import { initializeDashboard, displayDashboard } from './cli/dashboard/index.js';
+import { convertToISO8601 } from './utils/date/index.js';
 
 const MATCH_RETRIES = 3;
 const SAVE_INTERVAL = 10;
@@ -21,14 +23,20 @@ const sleep = ms => new Promise(res => setTimeout(res, ms));
   const options = parseArguments();
   const fileType = options.fileType || (await selectFileType());
 
-  // ---- CLI flow: country, league, season ----
+  // ---- CLI flow: country, league, season, period ----
   const tempBrowser = await puppeteer.launch({ headless: options.headless });
   const country = options.country ? { name: options.country } : await selectCountry(tempBrowser);
   const league = options.league ? { name: options.league } : await selectLeague(tempBrowser, country?.id);
   const season = league?.url ? await selectSeason(tempBrowser, league?.url) : { name: league?.name, url: `${BASE_URL}/football/${country?.name}/${league?.name}` };
+  
+  // NEW: Select statistics period
+  const period = await selectPeriod();
+  
   await tempBrowser.close();
 
-  const fileName = `${country?.name}_${season?.name}`.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+  // Update filename based on period selection
+  const baseFileName = `${country?.name}_${season?.name}`.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+  const fileName = period === 'all' ? `${baseFileName}_all_periods` : baseFileName;
   
   // ---- Check for existing checkpoint ----
   let checkpoint = null;
@@ -43,6 +51,7 @@ const sleep = ms => new Promise(res => setTimeout(res, ms));
   }
 
   console.info(`\n📝 Starting data collection for: ${fileName}`);
+  console.info(`Period: ${period === 'all' ? 'ALL PERIODS' : 'FULL TIME'}`);
   console.info(`Output: ${OUTPUT_PATH}/${fileName}.${fileType}`);
 
   // ---- Initialize Browser Manager ----
@@ -78,13 +87,15 @@ const sleep = ms => new Promise(res => setTimeout(res, ms));
   
   // Timing tracking
   const scrapingStartTime = Date.now();
-  let matchTimes = []; // Track time per match for average
+  let matchTimes = [];
 
   // ---- Initialize Dashboard ----
+  const periodLabel = period === 'all' ? ' [ALL PERIODS]' : '';
   const dashboardStats = {
     country: country?.name || '',
     league: league?.name || '',
     season: season?.name || '',
+    periodLabel: periodLabel,
     total: matchIdList.length,
     processed: startIndex,
     success: successCount,
@@ -122,10 +133,39 @@ const sleep = ms => new Promise(res => setTimeout(res, ms));
     
     for (let attempt = 1; attempt <= MATCH_RETRIES; attempt++) {
       try {
-        const data = await getMatchData(browserManager.getBrowser(), matchId);
+        // Pass period option to getMatchData
+        const data = await getMatchData(browserManager.getBrowser(), matchId, { period });
         if (!data) throw new Error('No data extracted');
 
-        matchData[matchId] = data;
+        // ===== ADD CONTEXT AND CONVERT DATE =====
+        // Convert date to ISO 8601 first
+        if (data.date) {
+          const isoDate = convertToISO8601(data.date);
+          if (isoDate) {
+            data.date = isoDate;
+          } else {
+            console.warn(`⚠️  Match ${matchId}: Could not convert date to ISO 8601, keeping original`);
+          }
+        }
+
+        // Extract season years for database queries
+        const seasonName = season?.name || '';
+        const seasonYears = seasonName.match(/(\d{4})\/(\d{4})/);
+        const seasonStartYear = seasonYears ? parseInt(seasonYears[1]) : null;
+        const seasonEndYear = seasonYears ? parseInt(seasonYears[2]) : null;
+
+        // Restructure to put context fields at the beginning
+        const restructuredData = {
+          country: country?.name || '',
+          league: league?.name || '',
+          season: seasonName,
+          seasonStartYear: seasonStartYear,
+          seasonEndYear: seasonEndYear,
+          ...data
+        };
+        // ===== END CONTEXT AND DATE CONVERSION =====
+
+        matchData[matchId] = restructuredData;
         successCount++;
         success = true;
         
@@ -139,23 +179,18 @@ const sleep = ms => new Promise(res => setTimeout(res, ms));
         }
         
         // Track timing
-        const matchDuration = (Date.now() - matchStartTime) / 1000; // in seconds
+        const matchDuration = (Date.now() - matchStartTime) / 1000;
         matchTimes.push(matchDuration);
-        if (matchTimes.length > 50) matchTimes.shift(); // Keep last 50 for rolling average
+        if (matchTimes.length > 50) matchTimes.shift();
         
         break;
       } catch (err) {
-        // Check if error is timeout/memory related
         const isTimeoutError = err.message.includes('timed out') || 
                                err.message.includes('Protocol error') ||
                                err.message.includes('Target closed');
         
         if (isTimeoutError && attempt < MATCH_RETRIES) {
           await browserManager.restart('timeout error');
-        }
-        
-        if (attempt >= MATCH_RETRIES) {
-          // Silent - only dashboard will show failed count
         }
         
         if (attempt < MATCH_RETRIES) {
@@ -177,9 +212,8 @@ const sleep = ms => new Promise(res => setTimeout(res, ms));
       : 0;
     
     const remainingMatches = matchIdList.length - processedMatchIds.length;
-    const eta = remainingMatches * avgTime * 1000; // in milliseconds
+    const eta = remainingMatches * avgTime * 1000;
     
-    // Get current memory usage
     const memoryMetrics = await browserManager.getMemoryUsage();
     const memoryUsage = memoryMetrics ? memoryMetrics.JSHeapUsedSize : 0;
     
@@ -212,13 +246,13 @@ const sleep = ms => new Promise(res => setTimeout(res, ms));
         failedIncCount,
         checkpointCount,
         checkpointPosition,
+        period,
         lastIndex: i,
         totalMatches: matchIdList.length,
         processedCount: processedMatchIds.length,
         timestamp: Date.now()
       });
       
-      // Update dashboard with new checkpoint info
       dashboardStats.checkpointCount = checkpointCount;
       dashboardStats.checkpointPosition = checkpointPosition;
     }

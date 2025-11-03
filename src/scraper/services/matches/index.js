@@ -3,43 +3,39 @@ import { openPageAndNavigate, waitAndClick, waitForSelectorSafe, delayBetweenReq
 import { handleFileType } from '../../../files/handle/index.js';
 import { normalizeStats, validateStats } from '../../../utils/normalizer/index.js';
 import { extractIncidents } from '../incidents/index.js';
+import { extractAllPeriodStats } from '../../../utils/periods/index.js';
 
 // --- Config ---
 const MAX_RETRIES = 3;
-const PAGE_TIMEOUT = 60000;         // 60s por página
+const PAGE_TIMEOUT = 60000;
 
-// --- Obtener lista de match IDs ---
+// --- Get Match ID List (unchanged) ---
 export const getMatchIdList = async (browser, leagueSeasonUrl) => {
   const page = await openPageAndNavigate(browser, `${leagueSeasonUrl}/results`);
 
   console.log(`\nℹ️  Opening results page: ${leagueSeasonUrl}/results`);
   console.log(`⏳ Loading all matches...`);
 
-  // Wait for initial matches to load
   await waitForSelectorSafe(page, '.event__match.event__match--static.event__match--twoLine', 10000);
   await new Promise(resolve => setTimeout(resolve, 2000));
 
-  // Click "Show more matches" until all matches are loaded
   let previousCount = 0;
   let clickCount = 0;
-  let noChangeCount = 0; // Track how many times count didn't change
+  let noChangeCount = 0;
   const MAX_CLICKS = 25;
-  const MAX_NO_CHANGE = 2; // Stop if count doesn't change 2 times in a row
+  const MAX_NO_CHANGE = 2;
   
   while (clickCount < MAX_CLICKS) {
-    // Count current matches
     const currentCount = await page.evaluate(() => {
       return document.querySelectorAll('.event__match.event__match--static.event__match--twoLine').length;
     });
     
-    // Log progress
     if (clickCount === 0) {
       console.log(`📊 Initial matches visible: ${currentCount}`);
     } else {
       console.log(`📊 After click ${clickCount}: ${currentCount} matches visible (+${currentCount - previousCount})`);
     }
     
-    // If no new matches loaded, increment counter
     if (currentCount === previousCount && clickCount > 0) {
       noChangeCount++;
       if (noChangeCount >= MAX_NO_CHANGE) {
@@ -47,20 +43,16 @@ export const getMatchIdList = async (browser, leagueSeasonUrl) => {
         break;
       }
     } else {
-      noChangeCount = 0; // Reset counter if we got new matches
+      noChangeCount = 0;
     }
     
-    // Try to find and click "Show more matches" button
     try {
-      // First, scroll to bottom
       await page.evaluate(() => {
         window.scrollTo(0, document.body.scrollHeight);
       });
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Find and click the button
       const buttonInfo = await page.evaluate(() => {
-        // Try to find the button
         const selectors = [
           'a[data-testid="wcl-buttonLink"]',
           'a.wclButtonLink',
@@ -77,16 +69,13 @@ export const getMatchIdList = async (browser, leagueSeasonUrl) => {
           });
           
           if (showMoreButton) {
-            // Get button info for debugging
             const rect = showMoreButton.getBoundingClientRect();
             const isVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
             
-            // Scroll into view if needed
             if (!isVisible) {
               showMoreButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
             
-            // Click the button
             showMoreButton.click();
             
             return {
@@ -108,12 +97,10 @@ export const getMatchIdList = async (browser, leagueSeasonUrl) => {
       clickCount++;
       console.log(`🔄 Clicked "Show more matches" (click ${clickCount}/${MAX_CLICKS})`);
       
-      // Wait for loading animation - look for loading indicator or just wait
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Wait for the loading animation to finish by checking if new matches appear
       let waitCount = 0;
-      const maxWaits = 10; // Wait up to 10 seconds
+      const maxWaits = 10;
       while (waitCount < maxWaits) {
         const newCount = await page.evaluate(() => {
           return document.querySelectorAll('.event__match.event__match--static.event__match--twoLine').length;
@@ -132,10 +119,7 @@ export const getMatchIdList = async (browser, leagueSeasonUrl) => {
         console.warn(`⚠️  Timeout waiting for new matches to load`);
       }
       
-      // Extra wait to ensure all content is rendered
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Update previous count
       previousCount = currentCount;
       
     } catch (error) {
@@ -148,7 +132,6 @@ export const getMatchIdList = async (browser, leagueSeasonUrl) => {
     console.warn(`⚠️  Reached maximum clicks (${MAX_CLICKS})`);
   }
 
-  // Final count and extraction
   const matchIdList = await page.evaluate(() => {
     return Array.from(
       document.querySelectorAll('.event__match.event__match--static.event__match--twoLine')
@@ -162,18 +145,18 @@ export const getMatchIdList = async (browser, leagueSeasonUrl) => {
   return matchIdList;
 };
 
-// --- Extraer datos de un match ---
-export const getMatchData = async (browser, matchId, retryCount = 0) => {
+// --- Extract Match Data (NOW WITH PERIOD SUPPORT) ---
+export const getMatchData = async (browser, matchId, options = {}, retryCount = 0) => {
+  const { period = 'fulltime' } = options;
   let page;
+  
   try {
-    // Silent mode - no initial log
     if (retryCount === 0) {
       await delayBetweenRequests();
     }
 
     const url = `${BASE_URL}/match/${matchId}/#/match-summary/match-summary`;
     
-    // Try to open page
     try {
       page = await openPageAndNavigate(browser, url, 3, false);
       if (!page) {
@@ -183,7 +166,6 @@ export const getMatchData = async (browser, matchId, retryCount = 0) => {
       throw new Error(`Navigation failed: ${err.message}`);
     }
 
-    // Validate page loaded correctly
     await new Promise(r => setTimeout(r, 2000));
     
     const pageIsValid = await page.evaluate(() => {
@@ -197,10 +179,8 @@ export const getMatchData = async (browser, matchId, retryCount = 0) => {
       throw new Error('Critical elements not found on page');
     }
 
-    // Privacy overlay - silent
     await handlePrivacyOverlay(page, matchId);
 
-    // Extract data
     let matchData = await extractMatchData(page);
     let information = await extractMatchInformation(page);
 
@@ -210,72 +190,97 @@ export const getMatchData = async (browser, matchId, retryCount = 0) => {
       incidents = await extractIncidents(page, matchId);
     }
 
-    // Extract statistics
+    // Extract statistics based on period selection
     let statistics = [];
     
     if (matchData.status === 'FINISHED') {
       try {
-        // Click the STATS tab
-        const statsTabFound = await page.evaluate(() => {
-          const links = Array.from(document.querySelectorAll('a'));
-          const statsLink = links.find(a => {
-            const text = a.innerText?.toUpperCase() || '';
-            return text.includes('STATS') || text.includes('STATISTICS');
-          });
-          if (statsLink) {
-            statsLink.click();
-            return true;
+        if (period === 'all') {
+          // Extract ALL PERIODS (Full Time + 1st Half + 2nd Half)
+          statistics = await extractAllPeriodStats(page, matchId, extractMatchStatistics);
+          
+          // Normalize each period separately
+          if (statistics.fullTime && statistics.fullTime.length > 0) {
+            statistics.fullTime = normalizeStats(statistics.fullTime);
           }
-          return false;
-        });
-
-        if (statsTabFound) {
-          await new Promise(r => setTimeout(r, 4000));
+          if (statistics.firstHalf && statistics.firstHalf.length > 0) {
+            statistics.firstHalf = normalizeStats(statistics.firstHalf);
+          }
+          if (statistics.secondHalf && statistics.secondHalf.length > 0) {
+            statistics.secondHalf = normalizeStats(statistics.secondHalf);
+          }
           
-          // Try to expand collapsed sections
-          await page.evaluate(() => {
-            const expandButtons = document.querySelectorAll('button[aria-expanded="false"], [class*="expand"], [class*="accordion"]');
-            expandButtons.forEach(btn => {
-              try { btn.click(); } catch (e) {}
+        } else {
+          // Extract FULL TIME only (current behavior)
+          const statsTabFound = await page.evaluate(() => {
+            const links = Array.from(document.querySelectorAll('a'));
+            const statsLink = links.find(a => {
+              const text = a.innerText?.toUpperCase() || '';
+              return text.includes('STATS') || text.includes('STATISTICS');
             });
+            if (statsLink) {
+              statsLink.click();
+              return true;
+            }
+            return false;
           });
-          
-          await new Promise(r => setTimeout(r, 2000));
-          statistics = await extractMatchStatistics(page);
-        }
-        
-        // Fallback to direct URLs if needed
-        if (statistics.length < 38) {
-          const tabUrls = [
-            `${BASE_URL}/match/${matchId}/#/match-summary/match-statistics/0`,
-            `${BASE_URL}/match/${matchId}/#/match-summary/match-statistics/1`,
-            `${BASE_URL}/match/${matchId}/#/match-summary/match-statistics`
-          ];
 
-          for (let i = 0; i < tabUrls.length; i++) {
-            try {
-              await page.goto(tabUrls[i], { waitUntil: 'networkidle0', timeout: PAGE_TIMEOUT });
-              await page.waitForSelector("div[data-testid='wcl-statistics']", { timeout: 5000 });
-              await new Promise(r => setTimeout(r, 3000));
-              
-              await page.evaluate(() => {
-                const expandButtons = document.querySelectorAll('button[aria-expanded="false"], [class*="expand"], [class*="accordion"]');
-                expandButtons.forEach(btn => {
-                  try { btn.click(); } catch (e) {}
-                });
+          if (statsTabFound) {
+            await new Promise(r => setTimeout(r, 4000));
+            
+            await page.evaluate(() => {
+              const expandButtons = document.querySelectorAll('button[aria-expanded="false"], [class*="expand"], [class*="accordion"]');
+              expandButtons.forEach(btn => {
+                try { btn.click(); } catch (e) {}
               });
-              await new Promise(r => setTimeout(r, 2000));
-              
-              const newStats = await extractMatchStatistics(page);
-              
-              if (newStats.length >= 38 && newStats.length <= 50) {
-                statistics = newStats;
-                break;
-              } else if (newStats.length > statistics.length) {
-                statistics = newStats;
+            });
+            
+            await new Promise(r => setTimeout(r, 2000));
+            statistics = await extractMatchStatistics(page);
+          }
+          
+          if (statistics.length < 38) {
+            const tabUrls = [
+              `${BASE_URL}/match/${matchId}/#/match-summary/match-statistics/0`,
+              `${BASE_URL}/match/${matchId}/#/match-summary/match-statistics/1`,
+              `${BASE_URL}/match/${matchId}/#/match-summary/match-statistics`
+            ];
+
+            for (let i = 0; i < tabUrls.length; i++) {
+              try {
+                await page.goto(tabUrls[i], { waitUntil: 'networkidle0', timeout: PAGE_TIMEOUT });
+                await page.waitForSelector("div[data-testid='wcl-statistics']", { timeout: 5000 });
+                await new Promise(r => setTimeout(r, 3000));
+                
+                await page.evaluate(() => {
+                  const expandButtons = document.querySelectorAll('button[aria-expanded="false"], [class*="expand"], [class*="accordion"]');
+                  expandButtons.forEach(btn => {
+                    try { btn.click(); } catch (e) {}
+                  });
+                });
+                await new Promise(r => setTimeout(r, 2000));
+                
+                const newStats = await extractMatchStatistics(page);
+                
+                if (newStats.length >= 38 && newStats.length <= 50) {
+                  statistics = newStats;
+                  break;
+                } else if (newStats.length > statistics.length) {
+                  statistics = newStats;
+                }
+              } catch (err) {
+                // Continue to next URL
               }
-            } catch (err) {
-              // Continue to next URL
+            }
+          }
+          
+          // Normalize statistics for fulltime mode
+          if (statistics.length > 0) {
+            statistics = normalizeStats(statistics);
+            
+            const validation = validateStats(statistics);
+            if (!validation.isValid) {
+              console.warn(`⚠️ Stats validation issues for ${matchId}:`, validation.issues);
             }
           }
         }
@@ -286,19 +291,7 @@ export const getMatchData = async (browser, matchId, retryCount = 0) => {
     }
 
     await page.close();
-
-    // Normalize and validate statistics
-    if (statistics.length > 0) {
-      statistics = normalizeStats(statistics);
-      
-      // Validate in development (optional - can remove in production)
-      const validation = validateStats(statistics);
-      if (!validation.isValid) {
-        console.warn(`⚠️ Stats validation issues for ${matchId}:`, validation.issues);
-      }
-    }
     
-    // Silent success - no log
     return { ...matchData, information, incidents, statistics };
   } catch (error) {
     if (page) {
@@ -309,7 +302,6 @@ export const getMatchData = async (browser, matchId, retryCount = 0) => {
       }
     }
     
-    // Only log on final failure
     if (retryCount >= MAX_RETRIES) {
       console.error(`❌ Failed match ${matchId} after ${MAX_RETRIES + 1} attempts: ${error.message}`);
     }
@@ -317,13 +309,13 @@ export const getMatchData = async (browser, matchId, retryCount = 0) => {
     if (retryCount < MAX_RETRIES) {
       const waitTime = Math.min(5000 * (retryCount + 1), 20000);
       await new Promise(res => setTimeout(res, waitTime));
-      return getMatchData(browser, matchId, retryCount + 1);
+      return getMatchData(browser, matchId, options, retryCount + 1);
     }
     return null;
   }
 };
 
-// --- Helpers ---
+// --- Helpers (unchanged) ---
 const handlePrivacyOverlay = async (page, matchId) => {
   if (!page) return;
   await page.evaluate(() => {

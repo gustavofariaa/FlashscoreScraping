@@ -60,6 +60,7 @@ export const displayDashboard = (stats) => {
     country = '',
     league = '',
     season = '',
+    periodLabel = '',
     total = 0,
     processed = 0,
     success = 0,
