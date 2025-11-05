@@ -130,3 +130,10 @@ dist
 .pnp.*
 
 data
+
+# Sample and test files
+matchsample.txt
+*.sample.txt
+*.sample.json
+PROJECT_STRUCTURE.md  
+ 
