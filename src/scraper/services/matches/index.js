@@ -3,10 +3,14 @@ import {
   waitAndClick,
   waitForSelectorSafe,
 } from "../../index.js";
-import { BASE_URL_MOBI, TIMEOUT } from "../../../constants/index.js";
+import { BASE_URL_MOBI } from "../../../constants/index.js";
 
 export const getMatchLinks = async (context, leagueSeasonUrl, type) => {
-  const page = await openPageAndNavigate(context, `${leagueSeasonUrl}/${type}`);
+  const page = await openPageAndNavigate(
+    context,
+    `${leagueSeasonUrl}/${type}`,
+    true
+  );
 
   const LOAD_MORE_SELECTOR = '[data-testid="wcl-buttonLink"]';
   const MATCH_SELECTOR =
@@ -28,17 +32,15 @@ export const getMatchLinks = async (context, leagueSeasonUrl, type) => {
 
     if (!isFirstClick) {
       await page
-        .waitForSelector(LOADING_OVERLAY, { hidden: true, timeout: TIMEOUT })
+        .waitForSelector(LOADING_OVERLAY, { hidden: true })
         .catch(() => {});
     }
 
-    const clicked = await waitAndClick(page, LOAD_MORE_SELECTOR);
-    if (!clicked) break;
+    await waitAndClick(page, LOAD_MORE_SELECTOR);
 
     isFirstClick = false;
 
     const matchesAfter = await getMatchCount();
-
     if (matchesAfter === matchesBefore) {
       emptyCycles++;
       if (emptyCycles >= MAX_EMPTY_CYCLES) break;
@@ -56,7 +58,6 @@ export const getMatchLinks = async (context, leagueSeasonUrl, type) => {
     }));
   }, MATCH_SELECTOR);
 
-  await page.close();
   return matchIdList;
 };
 

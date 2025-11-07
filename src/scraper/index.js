@@ -1,7 +1,14 @@
 import { TIMEOUT } from "../constants/index.js";
 
-export const openPageAndNavigate = async (context, url, timeout = TIMEOUT) => {
-  const page = await context.newPage();
+export const openPageAndNavigate = async (
+  context,
+  url,
+  samePage = false,
+  timeout = TIMEOUT
+) => {
+  const page = samePage
+    ? context.pages()?.[0] ?? (await context.newPage())
+    : await context.newPage();
   await page.goto(url, { waitUntil: "domcontentloaded" });
 
   const CLOSE_MODAL = "[data-testid='wcl-dialogCloseButton']";
@@ -24,14 +31,16 @@ export const waitAndClick = async (page, selector, timeout = TIMEOUT) => {
     await page.waitForSelector(selector, { timeout });
     await page.evaluate((selector) => {
       const el = document.querySelector(selector);
-      if (el) {
-        el.scrollIntoView({ block: "center", inline: "center" });
-        el.click();
-      }
+      if (el)
+        el.scrollIntoView({
+          block: "center",
+          inline: "center",
+          behavior: "instant",
+        });
     }, selector);
-    await page.waitForTimeout(300);
+    await page.click(selector, { delay: 300 });
     return true;
-  } catch {
+  } catch (err) {
     return false;
   }
 };

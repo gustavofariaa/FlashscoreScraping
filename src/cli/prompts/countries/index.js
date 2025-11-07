@@ -39,17 +39,14 @@ export const selectCountry = async (context, inputCountry) => {
   return findCountry(countries, choice);
 };
 
-const findCountry = (countries, targetName) => {
-  if (!targetName) return null;
-  return countries.find(
-    ({ name }) => formatCountryName(name) === formatCountryName(targetName)
-  );
-};
+const findCountry = (countries, rawInput) =>
+  !rawInput
+    ? null
+    : countries.find(({ name }) => normalize(name) === normalize(rawInput));
 
-const formatCountryName = (name) => {
-  return name
+const normalize = (str) =>
+  str
     .toLowerCase()
     .replace(/[^a-z0-9\s]/g, "")
     .trim()
     .replace(/\s+/g, "-");
-};

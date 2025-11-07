@@ -6,7 +6,7 @@ import {
 } from "../../index.js";
 
 export const getListOfLeagues = async (context, countryId) => {
-  const page = await openPageAndNavigate(context, BASE_URL);
+  const page = await openPageAndNavigate(context, BASE_URL, true);
 
   await waitAndClick(page, "#category-left-menu > div > span");
   await waitAndClick(page, `#${countryId}`);
@@ -20,6 +20,5 @@ export const getListOfLeagues = async (context, countryId) => {
     });
   }, countryId);
 
-  await page.close();
   return listOfLeagues;
 };

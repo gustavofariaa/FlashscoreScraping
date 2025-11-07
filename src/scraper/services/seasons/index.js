@@ -2,7 +2,7 @@ import { TIMEOUT } from "../../../constants/index.js";
 import { openPageAndNavigate, waitForSelectorSafe } from "../../index.js";
 
 export const getListOfSeasons = async (context, leagueUrl) => {
-  const page = await openPageAndNavigate(context, `${leagueUrl}/archive`);
+  const page = await openPageAndNavigate(context, `${leagueUrl}/archive`, true);
 
   await waitForSelectorSafe(page, ["div.archive__season > a"], TIMEOUT);
 
@@ -14,6 +14,5 @@ export const getListOfSeasons = async (context, leagueUrl) => {
     );
   });
 
-  await page.close();
   return listOfLeagueSeasons;
 };
