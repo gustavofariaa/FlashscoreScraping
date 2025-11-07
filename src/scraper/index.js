@@ -1,21 +1,39 @@
 import { TIMEOUT } from "../constants/index.js";
 
-export const openPageAndNavigate = async (context, url) => {
+export const openPageAndNavigate = async (context, url, timeout = TIMEOUT) => {
   const page = await context.newPage();
   await page.goto(url, { waitUntil: "domcontentloaded" });
+
+  const CLOSE_MODAL = "[data-testid='wcl-dialogCloseButton']";
+  const ACCEPT_COOKIES = "#onetrust-accept-btn-handler";
+
+  await Promise.allSettled([
+    page
+      .waitForSelector(CLOSE_MODAL, { timeout })
+      .then(() => page.click(CLOSE_MODAL).catch(() => {})),
+    page
+      .waitForSelector(ACCEPT_COOKIES, { timeout })
+      .then(() => page.click(ACCEPT_COOKIES).catch(() => {})),
+  ]);
+
   return page;
 };
 
 export const waitAndClick = async (page, selector, timeout = TIMEOUT) => {
-  await page.waitForSelector(selector, { timeout });
-  await page.evaluate(async (selector) => {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    const element = document.querySelector(selector);
-    if (element) {
-      element.scrollIntoView();
-      element.click();
-    }
-  }, selector);
+  try {
+    await page.waitForSelector(selector, { timeout });
+    await page.evaluate((selector) => {
+      const el = document.querySelector(selector);
+      if (el) {
+        el.scrollIntoView({ block: "center", inline: "center" });
+        el.click();
+      }
+    }, selector);
+    await page.waitForTimeout(300);
+    return true;
+  } catch {
+    return false;
+  }
 };
 
 export const waitForSelectorSafe = async (

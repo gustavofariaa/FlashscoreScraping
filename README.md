@@ -33,7 +33,7 @@
 git clone https://github.com/gustavofariaa/FlashscoreScraping.git
 cd FlashscoreScraping
 npm install
-npx playwright install-deps chromium
+npx playwright install chromium --with-deps
 npm run start
 ```
 

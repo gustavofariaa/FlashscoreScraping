@@ -1,4 +1,4 @@
-import fs from "fs";
+import { mkdirSync, writeFileSync } from "fs";
 import path from "path";
 import jsonexport from "jsonexport";
 
@@ -13,8 +13,8 @@ export const writeCsvToFile = (data, fileName) => {
     if (error) throw error;
 
     try {
-      fs.mkdirSync(path.dirname(filePath), { recursive: true });
-      fs.writeFileSync(filePath, fileContent);
+      mkdirSync(path.dirname(filePath), { recursive: true });
+      writeFileSync(filePath, fileContent);
     } catch (error) {
       throw Error(`❌ Failed to create directories or write the CSV file`);
     }

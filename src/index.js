@@ -1,19 +1,17 @@
 import { chromium } from "playwright";
-import { pLimit } from "./utils/index.js";
 import chalk from "chalk";
 
-import { OUTPUT_PATH } from "./constants/index.js";
+import { FileTypes, OUTPUT_PATH } from "./constants/index.js";
 import { parseArguments } from "./cli/arguments/index.js";
 import { promptUserOptions } from "./cli/prompts/index.js";
 import { start, stop } from "./cli/loader/index.js";
 import { initializeProgressbar } from "./cli/progressbar/index.js";
-
+import { pLimit } from "./utils/index.js";
 import {
   getMatchLinks,
   getMatchData,
 } from "./scraper/services/matches/index.js";
-
-import { writeDataToFile } from "./files/handle/index.js";
+import { writeDataToFile, readFileToData } from "./files/handle/index.js";
 
 (async () => {
   let browser;
@@ -54,16 +52,36 @@ import { writeDataToFile } from "./files/handle/index.js";
     const progressbar = initializeProgressbar(matchLinks.length);
     const limit = pLimit(cliOptions.concurrency);
 
+    const cachedMatchData = readFileToData(fileName, FileTypes.JSON);
     const matchData = {};
     let processedCount = 0;
 
     const tasks = matchLinks.map((matchLink) =>
       limit(async () => {
-        const data = await getMatchData(context, matchLink);
+        const cached = cachedMatchData[matchLink.id];
+
+        const isFinal =
+          cached &&
+          (cached.status === "FINISHED" || cached.status === "AFTER PENALTIES");
+
+        const hasRequiredData =
+          cached &&
+          cached.home?.name &&
+          cached.away?.name &&
+          cached.result?.home &&
+          cached.result?.away &&
+          Array.isArray(cached.statistics) &&
+          cached.statistics.length > 0;
+
+        const shouldUseCache = isFinal && hasRequiredData;
+
+        const data = shouldUseCache
+          ? cached
+          : await getMatchData(context, matchLink);
+
         matchData[matchLink.id] = data;
 
-        processedCount += 1;
-        if (processedCount % cliOptions.saveInterval === 0) {
+        if (++processedCount % cliOptions.saveInterval === 0) {
           writeDataToFile(matchData, fileName, fileType);
         }
 

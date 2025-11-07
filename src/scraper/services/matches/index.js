@@ -1,5 +1,9 @@
-import { openPageAndNavigate, waitForSelectorSafe } from "../../index.js";
-import { BASE_URL_MOBI } from "../../../constants/index.js";
+import {
+  openPageAndNavigate,
+  waitAndClick,
+  waitForSelectorSafe,
+} from "../../index.js";
+import { BASE_URL_MOBI, TIMEOUT } from "../../../constants/index.js";
 
 export const getMatchLinks = async (context, leagueSeasonUrl, type) => {
   const page = await openPageAndNavigate(context, `${leagueSeasonUrl}/${type}`);
@@ -7,27 +11,35 @@ export const getMatchLinks = async (context, leagueSeasonUrl, type) => {
   const LOAD_MORE_SELECTOR = '[data-testid="wcl-buttonLink"]';
   const MATCH_SELECTOR =
     ".event__match.event__match--static.event__match--twoLine";
-  const CLICK_DELAY = 600;
+  const LOADING_OVERLAY = ".loadingOverlay";
+
   const MAX_EMPTY_CYCLES = 4;
 
   let emptyCycles = 0;
+  let isFirstClick = true;
+
+  const getMatchCount = () => page.$$eval(MATCH_SELECTOR, (els) => els.length);
 
   while (true) {
-    const countBefore = await page.$$eval(MATCH_SELECTOR, (els) => els.length);
+    const matchesBefore = await getMatchCount();
 
-    const loadMoreBtn = await page.$(LOAD_MORE_SELECTOR);
-    if (!loadMoreBtn) break;
+    const hasButton = await page.$(LOAD_MORE_SELECTOR);
+    if (!hasButton) break;
 
-    try {
-      await loadMoreBtn.click();
-      await page.waitForTimeout(CLICK_DELAY);
-    } catch {
-      break;
+    if (!isFirstClick) {
+      await page
+        .waitForSelector(LOADING_OVERLAY, { hidden: true, timeout: TIMEOUT })
+        .catch(() => {});
     }
 
-    const countAfter = await page.$$eval(MATCH_SELECTOR, (els) => els.length);
+    const clicked = await waitAndClick(page, LOAD_MORE_SELECTOR);
+    if (!clicked) break;
 
-    if (countAfter === countBefore) {
+    isFirstClick = false;
+
+    const matchesAfter = await getMatchCount();
+
+    if (matchesAfter === matchesBefore) {
       emptyCycles++;
       if (emptyCycles >= MAX_EMPTY_CYCLES) break;
     } else {
@@ -37,20 +49,14 @@ export const getMatchLinks = async (context, leagueSeasonUrl, type) => {
 
   await waitForSelectorSafe(page, [MATCH_SELECTOR]);
 
-  const matchIdList = await page.evaluate(() => {
-    return Array.from(
-      document.querySelectorAll(
-        ".event__match.event__match--static.event__match--twoLine"
-      )
-    ).map((element) => {
-      const id = element?.id?.replace("g_1_", "");
-      const url = element.querySelector("a.eventRowLink")?.href ?? null;
-      return { id, url };
-    });
-  });
+  const matchIdList = await page.evaluate((selector) => {
+    return Array.from(document.querySelectorAll(selector)).map((el) => ({
+      id: el?.id?.replace("g_1_", "") ?? null,
+      url: el.querySelector("a.eventRowLink")?.href ?? null,
+    }));
+  }, MATCH_SELECTOR);
 
   await page.close();
-
   return matchIdList;
 };
 
@@ -64,7 +70,10 @@ export const getMatchData = async (context, { id: matchId, url }) => {
 
   const matchData = await extractMatchData(page);
   const information = await extractMatchInformation(page);
-  const statistics = await extractMatchStatisticsMobi(matchId);
+  let statistics = [];
+  if (matchData?.status?.trim()) {
+    statistics = await extractMatchStatisticsMobi(matchId);
+  }
 
   await page.close();
   return { matchId, ...matchData, information, statistics };
@@ -98,7 +107,7 @@ const extractMatchData = async (page) => {
       status:
         document
           .querySelector(".fixedHeaderDuel__detailStatus")
-          ?.innerText.trim() ?? "NOT STARTED",
+          ?.innerText.trim() ?? "",
       home: {
         name: document
           .querySelector(
