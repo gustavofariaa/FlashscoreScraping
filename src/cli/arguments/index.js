@@ -1,8 +1,9 @@
-import { FileTypes } from "../../constants/index.js";
+import { FileTypes, Sports } from "../../constants/index.js";
 
 export const parseArguments = () => {
   const args = process.argv.slice(2);
   const options = {
+    sport: null,
     country: null,
     league: null,
     fileType: null,
@@ -12,6 +13,7 @@ export const parseArguments = () => {
   };
 
   args.forEach((arg) => {
+    if (arg.startsWith("sport=")) options.sport = arg.split("=")[1];
     if (arg.startsWith("country=")) options.country = arg.split("=")[1];
     if (arg.startsWith("league=")) options.league = arg.split("=")[1];
     if (arg.startsWith("fileType=")) options.fileType = arg.split("=")[1];
@@ -42,6 +44,25 @@ export const parseArguments = () => {
     }
 
     options.fileType = matchedType;
+  }
+
+  if (options.sport) {
+    const userInput = options.sport;
+    const matchedSport = Object.values(Sports).find(
+      (sport) => sport.argument === userInput
+    );
+
+    if (!matchedSport) {
+      const acceptedSports = Object.values(Sports)
+        .map((sport) => `"${sport.argument}"`)
+        .join(", ");
+      throw Error(
+        `❌ Invalid sport: "${userInput}"\n` +
+          `Accepted sports are: ${acceptedSports}`
+      );
+    }
+
+    options.sport = matchedSport;
   }
 
   if (options.league && !options.country) {

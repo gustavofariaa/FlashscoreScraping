@@ -3,18 +3,28 @@ export const OUTPUT_PATH = "./src/data";
 export const TIMEOUT = 2500;
 export const FileTypes = Object.freeze({
   JSON: {
-    label: "JSON (Padrão)",
+    label: "JSON",
     argument: "json",
     extension: ".json",
   },
   JSON_ARRAY: {
-    label: "JSON Array (Lista)",
+    label: "JSON Array",
     argument: "json-array",
     extension: ".array.json",
   },
   CSV: {
-    label: "Arquivo CSV",
+    label: "CSV",
     argument: "csv",
     extension: ".csv",
+  },
+});
+export const Sports = Object.freeze({
+  FOOTBALL: {
+    label: "Football",
+    argument: "football",
+  },
+  HOCKEY: {
+    label: "Hockey",
+    argument: "hockey",
   },
 });

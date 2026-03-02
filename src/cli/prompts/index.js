@@ -3,14 +3,16 @@ import chalk from "chalk";
 import { BASE_URL, OUTPUT_PATH } from "../../constants/index.js";
 
 import { selectFileType } from "./fileType/index.js";
+import { selectSport } from "./sport/index.js";
 import { selectCountry } from "./countries/index.js";
 import { selectLeague } from "./leagues/index.js";
 import { selectSeason } from "./season/index.js";
 
 export const promptUserOptions = async (context, cliOptions) => {
   const fileType = await selectFileType(cliOptions?.fileType);
-  const country = await selectCountry(context, cliOptions?.country);
-  const season = await resolveSeason(context, cliOptions, country);
+  const sport = await selectSport(cliOptions?.sport);
+  const country = await selectCountry(context, sport, cliOptions?.country);
+  const season = await resolveSeason(context, cliOptions, sport, country);
 
   const fileName = generateFileName(country?.name, season?.name);
 
@@ -24,9 +26,9 @@ export const promptUserOptions = async (context, cliOptions) => {
   return { fileName, season, fileType };
 };
 
-const resolveSeason = async (context, cliOptions, country) => {
+const resolveSeason = async (context, cliOptions, sport, country) => {
   if (!cliOptions?.league) {
-    const league = await selectLeague(context, country?.id);
+    const league = await selectLeague(context, sport, country?.id);
     return await selectSeason(context, league?.url);
   }
 
@@ -35,7 +37,7 @@ const resolveSeason = async (context, cliOptions, country) => {
 
   return {
     name: leagueName,
-    url: `${BASE_URL}/football/${country?.name}/${cliOptions.league}`.toLowerCase(),
+    url: `${BASE_URL}/${sport.argument}/${country?.name}/${cliOptions.league}`.toLowerCase(),
   };
 };
 

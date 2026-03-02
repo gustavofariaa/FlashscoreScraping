@@ -5,8 +5,8 @@ import {
   waitForSelectorSafe,
 } from "../../index.js";
 
-export const getListOfLeagues = async (context, countryId) => {
-  const page = await openPageAndNavigate(context, BASE_URL);
+export const getListOfLeagues = async (context, sport, countryId) => {
+  const page = await openPageAndNavigate(context, `${BASE_URL}/${sport.argument}/`);
 
   await waitAndClick(page, "#category-left-menu > div > span");
   await waitAndClick(page, `#${countryId}`);
